@@ -5,68 +5,73 @@ const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 /**
  * Robust, bulletproof budget extractor
- * Correctly parses 50000, 50,000, 50k, 70k, 1.5L, 25000 rupees without regex truncating
  */
 export function extractBudgetNumber(query, category) {
   const q = query.toLowerCase();
 
-  // 1. Check for "k" notation: e.g. "50k", "70k", "25.5k", "8 k"
+  // 1. "k" notation: e.g. "50k", "1.5k", "800"
   const kMatch = q.match(/\b(\d+(?:\.\d+)?)\s*k\b/i);
   if (kMatch) {
     return Math.round(parseFloat(kMatch[1]) * 1000);
   }
 
-  // 2. Check for "lakh" or "lac": e.g. "1.5 lakh", "1 lakh"
+  // 2. "lakh" notation: e.g. "1.5 lakh", "1 lakh"
   const lakhMatch = q.match(/\b(\d+(?:\.\d+)?)\s*(?:lakh|lac|l)\b/i);
   if (lakhMatch) {
     return Math.round(parseFloat(lakhMatch[1]) * 100000);
   }
 
-  // 3. Check for exact full numbers: e.g. "50000", "50,000", "70000", "25000", "8990"
-  const fullNumbers = q.match(/\b\d{1,3}(?:,\d{3})+\b|\b\d{4,7}\b/g);
+  // 3. Exact numbers: e.g. "50000", "999", "1299", "25000", "8990"
+  const fullNumbers = q.match(/\b\d{1,3}(?:,\d{3})+\b|\b\d{3,7}\b/g);
   if (fullNumbers && fullNumbers.length > 0) {
     const raw = fullNumbers[0].replace(/,/g, '');
     const val = parseInt(raw, 10);
-    if (!isNaN(val) && val >= 1000) {
+    if (!isNaN(val) && val >= 100) {
       return val;
     }
   }
 
-  // 4. Check for any digit following budget keywords
-  const keywordMatch = q.match(/(?:under|below|budget|max|upto|around|within|price|cost|rs\.?|inr|₹)\s*(\d[\d,]*)/i);
-  if (keywordMatch && keywordMatch[1]) {
-    const val = parseInt(keywordMatch[1].replace(/,/g, ''), 10);
-    if (!isNaN(val) && val > 0) {
-      return val < 500 ? val * 1000 : val;
-    }
-  }
-
-  // 5. Default category budgets if unspecified
+  // 4. Default category budgets if unspecified
+  if (category === 'clothing' || category === 'fashion') return 1500;
   if (category === 'phone') return 25000;
   if (category === 'headphones') return 10000;
   return 70000;
 }
 
 /**
- * Deterministic fallback mission extractor
+ * Deterministic fallback mission extractor for multi-category
  */
 function getFallbackMission(query) {
   const q = query.toLowerCase();
   
   // 1. Detect Category
   let category = 'laptop';
-  if (q.includes('phone') || q.includes('mobile') || q.includes('smartphone')) {
+  if (q.includes('shirt') || q.includes('tshirt') || q.includes('t-shirt') || q.includes('pant') || q.includes('trouser') || q.includes('cloth') || q.includes('dress') || q.includes('jeans') || q.includes('wear') || q.includes('hoodie')) {
+    category = 'clothing';
+  } else if (q.includes('phone') || q.includes('mobile') || q.includes('smartphone')) {
     category = 'phone';
   } else if (q.includes('headphone') || q.includes('earphone') || q.includes('audio') || q.includes('earbuds') || q.includes('anc')) {
     category = 'headphones';
   }
 
-  // 2. Extract Budget (Bulletproof)
+  // 2. Extract Budget
   const budget_max = extractBudgetNumber(query, category);
 
   // 3. Category-specific Priorities
   let priorities = [];
-  if (category === 'laptop') {
+  if (category === 'clothing') {
+    const comfortHigh = q.includes('comfort') || q.includes('soft') || q.includes('oversized');
+    const fabricHigh = q.includes('cotton') || q.includes('fabric') || q.includes('pure') || q.includes('material');
+    const styleHigh = q.includes('style') || q.includes('look') || q.includes('fit') || q.includes('design');
+
+    priorities = [
+      { attribute: 'fabric', label: 'Fabric & Material Quality', weight: fabricHigh ? 0.35 : 0.25, importance: 'HIGH' },
+      { attribute: 'comfort', label: 'All-Day Comfort', weight: comfortHigh ? 0.35 : 0.25, importance: 'HIGH' },
+      { attribute: 'durability', label: 'Durability & Stitching', weight: 0.20, importance: 'MEDIUM' },
+      { attribute: 'breathability', label: 'Breathability', weight: 0.15, importance: 'MEDIUM' },
+      { attribute: 'fit', label: 'Fit & Silhouette', weight: styleHigh ? 0.20 : 0.10, importance: styleHigh ? 'HIGH' : 'LOW' }
+    ];
+  } else if (category === 'laptop') {
     const batteryHigh = q.includes('battery') || q.includes('backup');
     const gamingHigh = q.includes('game') || q.includes('gaming') || q.includes('gpu');
     const portHigh = q.includes('portab') || q.includes('travel') || q.includes('light') || q.includes('weight');
@@ -105,7 +110,7 @@ function getFallbackMission(query) {
     ];
   }
 
-  // Normalize weights so sum is 1.0
+  // Normalize weights to 1.0
   const sumWeights = priorities.reduce((acc, p) => acc + p.weight, 0);
   priorities = priorities.map(p => ({ ...p, weight: Number((p.weight / sumWeights).toFixed(2)) }));
 
@@ -128,7 +133,6 @@ export async function extractShoppingMission(userQuery) {
 
   if (!apiKey || !genAI) {
     const fallback = getFallbackMission(userQuery);
-    console.log("🎯 Extracted Mission JSON (Deterministic Engine):", fallback);
     return fallback;
   }
 
@@ -143,11 +147,11 @@ export async function extractShoppingMission(userQuery) {
 Analyze the user's natural language shopping need and output ONLY a valid JSON object matching this schema:
 
 {
-  "category": "laptop" | "phone" | "headphones",
-  "budget_max": number (CRITICAL: Exact integer in INR. e.g. "50000 rupees" -> 50000, "70k" -> 70000, "25,000" -> 25000, "8990" -> 8990. Do NOT add extra zeros),
+  "category": "laptop" | "phone" | "headphones" | "clothing",
+  "budget_max": number (CRITICAL: Exact integer in INR. e.g. "under 1000" -> 1000, "50000" -> 50000, "70k" -> 70000, "849 rs" -> 849. Do NOT add extra zeros),
   "priorities": [
     {
-      "attribute": "battery" | "performance" | "portability" | "gaming" | "display" | "camera" | "anc" | "sound" | "comfort",
+      "attribute": string (e.g. "battery", "performance", "fabric", "comfort", "durability", "breathability", "fit", "camera", "anc", "sound"),
       "label": "Human Readable Label",
       "weight": number (between 0.05 and 0.50, all weights MUST sum to exactly 1.0),
       "importance": "HIGH" | "MEDIUM" | "LOW"
@@ -161,11 +165,9 @@ Analyze the user's natural language shopping need and output ONLY a valid JSON o
     const text = result.response.text();
     const parsed = JSON.parse(text);
 
-    // Double-check budget parsing with regex sanitizer in case Gemini hallucinated a multiplier
     const sanitizedBudget = extractBudgetNumber(userQuery, parsed.category || 'laptop');
     parsed.budget_max = sanitizedBudget;
 
-    // Ensure weights sum to 1.0
     const totalWeight = parsed.priorities.reduce((sum, p) => sum + (Number(p.weight) || 0.1), 0);
     parsed.priorities = parsed.priorities.map(p => ({
       ...p,
@@ -173,13 +175,10 @@ Analyze the user's natural language shopping need and output ONLY a valid JSON o
     }));
 
     parsed.query = userQuery;
-    console.log("🎯 Gemini Call #1 - Extracted Mission JSON:", parsed);
     return parsed;
 
   } catch (error) {
-    console.warn("Gemini intent extraction failed, falling back to deterministic parser:", error);
-    const fallback = getFallbackMission(userQuery);
-    console.log("🎯 Extracted Mission JSON (Fallback):", fallback);
-    return fallback;
+    console.warn("Gemini intent extraction fallback:", error);
+    return getFallbackMission(userQuery);
   }
 }
