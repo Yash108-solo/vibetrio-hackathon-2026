@@ -17,6 +17,7 @@ import { SEED_PRODUCTS } from './data/seedProducts';
 import { searchProducts, buildSearchQuery } from './services/serperSearch';
 import { analyzeProducts } from './services/geminiVerdict';
 import ComparisonModal from './components/ComparisonModal';
+import ApiKeyModal from './components/ApiKeyModal';
 
 export default function App() {
   const [query, setQuery] = useState('');
@@ -32,6 +33,7 @@ export default function App() {
   const [jsonLog, setJsonLog] = useState('');
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [isRealTime, setIsRealTime] = useState(false);
+  const [isApiModalOpen, setIsApiModalOpen] = useState(false);
 
   const HERO_EXAMPLES = [
     {
@@ -239,7 +241,15 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => setIsApiModalOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 px-3 py-2 rounded-xl transition"
+            >
+              <Zap className="w-3.5 h-3.5 text-emerald-400" />
+              <span>API Keys</span>
+            </button>
+
             <button
               onClick={() => exportElementToPDF('decide-main-view', 'DECIDE_Decision_Report.pdf')}
               className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 px-3 py-2 rounded-xl transition"
@@ -752,6 +762,12 @@ export default function App() {
         onClose={() => setIsCompareOpen(false)} 
         products={top3} 
         category={mission?.category || 'laptop'}
+      />
+
+      {/* API Key Settings Modal */}
+      <ApiKeyModal 
+        isOpen={isApiModalOpen} 
+        onClose={() => setIsApiModalOpen(false)} 
       />
 
       {/* Saved Decisions Slide-over Drawer */}

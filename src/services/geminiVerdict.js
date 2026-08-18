@@ -10,8 +10,7 @@
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
-
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+import { getGeminiApiKey } from './geminiIntent';
 
 /**
  * Analyze raw shopping results with Gemini and return structured product data
@@ -20,7 +19,8 @@ const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
  * @returns {Array|null} - enriched product array matching our card format, or null on failure
  */
 export async function analyzeProducts(shoppingResults, mission) {
-  if (!GEMINI_API_KEY) {
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
     console.warn('[GeminiVerdict] No Gemini API key. Skipping AI analysis.');
     return null;
   }
@@ -29,7 +29,7 @@ export async function analyzeProducts(shoppingResults, mission) {
     return null;
   }
 
-  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+  const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
     model: 'gemini-1.5-flash',
     generationConfig: {

@@ -4,7 +4,9 @@
  * Fallback: returns null → App uses seed catalog
  */
 
-const SERPER_API_KEY = import.meta.env.VITE_SERPER_API_KEY;
+export function getSerperApiKey() {
+  return localStorage.getItem('DECIDE_SERPER_KEY') || import.meta.env.VITE_SERPER_API_KEY || '';
+}
 
 /**
  * Search for real products via Serper Shopping API
@@ -13,8 +15,9 @@ const SERPER_API_KEY = import.meta.env.VITE_SERPER_API_KEY;
  * @returns {Array|null} - raw shopping results or null on failure
  */
 export async function searchProducts(query, numResults = 20) {
-  if (!SERPER_API_KEY) {
-    console.warn('[Serper] No API key configured. Set VITE_SERPER_API_KEY in .env');
+  const apiKey = getSerperApiKey();
+  if (!apiKey) {
+    console.warn('[Serper] No API key configured. Set in UI or VITE_SERPER_API_KEY in .env');
     return null;
   }
 
@@ -22,7 +25,7 @@ export async function searchProducts(query, numResults = 20) {
     const response = await fetch('https://google.serper.dev/shopping', {
       method: 'POST',
       headers: {
-        'X-API-KEY': SERPER_API_KEY,
+        'X-API-KEY': apiKey,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

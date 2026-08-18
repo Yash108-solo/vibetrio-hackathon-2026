@@ -1,7 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+export function getGeminiApiKey() {
+  return localStorage.getItem('DECIDE_GEMINI_KEY') || import.meta.env.VITE_GEMINI_API_KEY || '';
+}
 
 /**
  * Robust, bulletproof budget extractor
@@ -131,12 +132,15 @@ export async function extractShoppingMission(userQuery) {
     throw new Error("Query cannot be empty");
   }
 
-  if (!apiKey || !genAI) {
+  const activeKey = getGeminiApiKey();
+
+  if (!activeKey) {
     const fallback = getFallbackMission(userQuery);
     return fallback;
   }
 
   try {
+    const genAI = new GoogleGenerativeAI(activeKey);
     const model = genAI.getGenerativeModel({
       model: 'gemini-1.5-flash',
       generationConfig: {

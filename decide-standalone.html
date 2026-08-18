@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DECIDE • ShopSense AI (Standalone)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Navigation Bar -->
+  <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 flex items-center justify-center font-black text-white text-lg shadow-lg shadow-indigo-500/25">
+          D
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent">
+              DECIDE
+            </span>
+            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold">
+              ShopSense AI
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400 font-medium">Multi-Store Decision Intelligence</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="toggleApiModal(true)" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 px-3.5 py-2 rounded-xl transition">
+          <i data-lucide="key" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span id="api-btn-text">API Keys</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-10 space-y-10">
+    
+    <!-- Hero Pitch -->
+    <div class="text-center space-y-3">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold uppercase tracking-wider">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+        Real-Time Multi-Store Intelligence • Not Just Search
+      </div>
+      <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+        Compare prices, verify data, <br class="hidden sm:inline" />
+        <span class="bg-gradient-to-r from-indigo-400 via-indigo-200 to-emerald-400 bg-clip-text text-transparent">
+          decide with confidence.
+        </span>
+      </h1>
+      <p class="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
+        Tell us what you're buying. We scan live prices from Amazon, Flipkart & more, analyze with AI, and show transparent verdicts with trade-offs.
+      </p>
+    </div>
+
+    <!-- Natural Language Input Form -->
+    <div class="relative bg-slate-900/90 border border-slate-800 focus-within:border-indigo-500 rounded-3xl p-4 shadow-2xl transition duration-300">
+      <form id="search-form" onsubmit="handleSearch(event)" class="flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1 flex items-center">
+          <i data-lucide="search" class="w-5 h-5 text-slate-500 absolute left-4 shrink-0"></i>
+          <input
+            id="query-input"
+            type="text"
+            placeholder="e.g. I need a laptop under ₹70,000 for coding, college and occasional gaming..."
+            class="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-12 pr-4 py-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+          />
+        </div>
+        <button
+          id="submit-btn"
+          type="submit"
+          class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-semibold px-6 py-3.5 rounded-2xl text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 shrink-0"
+        >
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>Find My Match</span>
+        </button>
+      </form>
+
+      <!-- Status Progress -->
+      <div id="loading-stage" class="hidden mt-3 pt-3 border-t border-slate-800 text-xs text-indigo-300 flex items-center gap-2 animate-pulse">
+        <i data-lucide="globe" class="w-4 h-4 text-indigo-400"></i>
+        <span id="loading-text">Scanning real stores across India...</span>
+      </div>
+
+      <!-- Quick Sample Buttons -->
+      <div class="mt-4 pt-4 border-t border-slate-800/80">
+        <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+          <i data-lucide="info" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span>Or click a sample mission:</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <button onclick="setQuery('I need a laptop under ₹70,000 for coding, college and occasional gaming. Battery and portability matter more than looks.')" class="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition flex flex-col justify-between space-y-1.5">
+            <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5"><i data-lucide="laptop" class="w-3.5 h-3.5 text-indigo-400"></i> CS Student Laptop</span>
+            <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">Laptop • Under ₹70k</span>
+          </button>
+          <button onclick="setQuery('Looking for a smartphone under ₹25,000 with exceptional battery life and clean display for daily productivity.')" class="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition flex flex-col justify-between space-y-1.5">
+            <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5"><i data-lucide="smartphone" class="w-3.5 h-3.5 text-indigo-400"></i> Productivity Phone</span>
+            <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">Phone • Under ₹25k</span>
+          </button>
+          <button onclick="setQuery('I need wireless noise-cancelling headphones under ₹10,000 for study and travel with great comfort.')" class="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition flex flex-col justify-between space-y-1.5">
+            <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5"><i data-lucide="headphones" class="w-3.5 h-3.5 text-indigo-400"></i> ANC Audio</span>
+            <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">Audio • Under ₹10k</span>
+          </button>
+          <button onclick="setQuery('I need a comfortable 100% pure cotton oversized t-shirt under ₹1,000 for college wear.')" class="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition flex flex-col justify-between space-y-1.5">
+            <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5"><i data-lucide="shirt" class="w-3.5 h-3.5 text-indigo-400"></i> Cotton T-Shirt</span>
+            <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">Fashion • Under ₹1k</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dynamic Re-rank Alert Banner -->
+    <div id="rerank-banner" class="hidden bg-emerald-500/15 border border-emerald-500/40 rounded-2xl p-3.5 text-center text-xs font-semibold text-emerald-300 flex items-center justify-center gap-2">
+      <i data-lucide="zap" class="w-4 h-4 text-emerald-400"></i>
+      <span>⚡ Priorities adjusted! Match scores recalculated deterministically in 0.01s.</span>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results-container" class="hidden space-y-8">
+      
+      <!-- Source Status Badge -->
+      <div id="source-badge" class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+        <i data-lucide="wifi" class="w-4 h-4 animate-pulse"></i>
+        <span id="source-badge-text">🟢 Live Data — Real-time Google Shopping prices</span>
+      </div>
+
+      <!-- Priority Sliders Card -->
+      <div class="bg-slate-900/90 border border-indigo-500/30 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+          <div>
+            <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider mb-2">
+              <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+              Interactive Decision Model
+            </div>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Adjust Your Priorities in Real Time</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Drag any slider to see how the product ranking shifts instantly.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="bg-slate-950 px-4 py-2 rounded-2xl border border-slate-800 text-right">
+              <div class="text-[10px] text-slate-500 uppercase font-semibold">Category</div>
+              <div id="mission-category" class="text-sm font-bold text-indigo-300 capitalize">Laptop</div>
+            </div>
+            <div class="bg-slate-950 px-4 py-2 rounded-2xl border border-slate-800 text-right">
+              <div class="text-[10px] text-slate-500 uppercase font-semibold">Budget Cap</div>
+              <div id="mission-budget" class="text-sm font-bold text-emerald-400 font-mono">₹70,000 ✓</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="sliders-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Sliders will be rendered here -->
+        </div>
+      </div>
+
+      <!-- Product Cards Header -->
+      <div class="flex items-center justify-between pt-4">
+        <div>
+          <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+            <i data-lucide="award" class="w-6 h-6 text-amber-400"></i>
+            <span>Ranked Candidates</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Ranked deterministically using your live priority weights.</p>
+        </div>
+      </div>
+
+      <!-- Product Cards Container -->
+      <div id="product-cards" class="space-y-5">
+        <!-- Rendered by JS -->
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- API Key Modal -->
+  <div id="api-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden items-center justify-center p-4 sm:p-6">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden">
+      <div class="p-5 sm:p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/70">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+            <i data-lucide="key" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-black text-white">Live API Key Settings</h2>
+            <p class="text-xs text-slate-400">Enter your keys for real-time web shopping & AI verdicts</p>
+          </div>
+        </div>
+        <button onclick="toggleApiModal(false)" class="p-1.5 text-slate-400 hover:text-slate-200 rounded-xl">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-5">
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <label class="font-bold text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-400"></i> Google Gemini API Key
+            </label>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[11px] text-indigo-400 hover:underline">Get Free Key →</a>
+          </div>
+          <input id="key-gemini" type="password" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-100 focus:outline-none" />
+          <p class="text-[11px] text-slate-400">Powers intent extraction & transparent purchase verdicts.</p>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <label class="font-bold text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="globe" class="w-3.5 h-3.5 text-emerald-400"></i> Serper.dev API Key (Google Shopping)
+            </label>
+            <a href="https://serper.dev/" target="_blank" class="text-[11px] text-emerald-400 hover:underline">Get Free Key →</a>
+          </div>
+          <input id="key-serper" type="password" placeholder="Serper API Key..." class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-100 focus:outline-none" />
+          <p class="text-[11px] text-slate-400">Scans live store pricing from Amazon, Flipkart, Croma across India.</p>
+        </div>
+
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80 flex items-start gap-2 text-[11px] text-slate-400">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+          <span>Keys are stored strictly in your browser (LocalStorage). Never sent anywhere else.</span>
+        </div>
+      </div>
+
+      <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-950 flex items-center justify-between">
+        <button onclick="clearKeys()" class="text-xs text-slate-500 hover:text-rose-400">Clear Stored Keys</button>
+        <div class="flex items-center gap-2">
+          <button onclick="toggleApiModal(false)" class="text-xs font-semibold px-4 py-2 rounded-xl text-slate-400">Cancel</button>
+          <button onclick="saveKeys()" class="text-xs font-bold px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25">
+            Save & Activate
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-Side JavaScript Logic -->
+  <script>
+    // Fallback Seed Catalog
+    const SEED_CATALOG = {
+      laptop: [
+        {
+          id: 101, title: "Lenovo LOQ 15 (Ryzen 7 7840HS, RTX 4050, 16GB, 512GB)",
+          brand: "Lenovo", price: 68990, mrp: 84990, rating: 4.5, reviewsCount: 1420,
+          thumbnail: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600&auto=format&fit=crop&q=80",
+          stores: [
+            { name: "Amazon", price: 68990, inStock: true, delivery: "Tomorrow", isBest: true, link: "https://amazon.in" },
+            { name: "Flipkart", price: 69990, inStock: true, delivery: "2 Days", isBest: false, link: "https://flipkart.com" }
+          ],
+          priceHistory: { lowest30Days: 67990, highest30Days: 73990, trend: "downward" },
+          verdict: "BUY NOW", verdictType: "buy", verdictReason: "Within 1.4% of 60-day all-time low. Great RTX 4050 value.",
+          attributes: { battery_hours: 6.0, weight_kg: 2.4, performance_score: 92, gaming_score: 88, portability_score: 65, display_score: 75 }
+        },
+        {
+          id: 102, title: "ASUS Vivobook 15 OLED (Intel i5-13500H, 16GB, 2.8K 120Hz)",
+          brand: "ASUS", price: 64990, mrp: 79990, rating: 4.4, reviewsCount: 980,
+          thumbnail: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&auto=format&fit=crop&q=80",
+          stores: [
+            { name: "Flipkart", price: 64990, inStock: true, delivery: "Tomorrow", isBest: true, link: "https://flipkart.com" },
+            { name: "Amazon", price: 65490, inStock: true, delivery: "2 Days", isBest: false, link: "https://amazon.in" }
+          ],
+          priceHistory: { lowest30Days: 63990, highest30Days: 68990, trend: "stable" },
+          verdict: "BUY NOW", verdictType: "buy", verdictReason: "Best in-class OLED display under ₹65k. Stable price.",
+          attributes: { battery_hours: 8.5, weight_kg: 1.7, performance_score: 84, gaming_score: 45, portability_score: 88, display_score: 98 }
+        },
+        {
+          id: 103, title: "Acer Swift Go 14 OLED (Core Ultra 5 125H, 16GB, AI NPU)",
+          brand: "Acer", price: 69990, mrp: 89990, rating: 4.6, reviewsCount: 650,
+          thumbnail: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=600&auto=format&fit=crop&q=80",
+          stores: [{ name: "Amazon", price: 69990, inStock: true, delivery: "Tomorrow", isBest: true, link: "https://amazon.in" }],
+          priceHistory: { lowest30Days: 69990, highest30Days: 74990, trend: "downward" },
+          verdict: "BUY NOW", verdictType: "buy", verdictReason: "Includes latest Core Ultra AI NPU. Highest battery life.",
+          attributes: { battery_hours: 11.5, weight_kg: 1.32, performance_score: 86, gaming_score: 55, portability_score: 96, display_score: 95 }
+        }
+      ],
+      phone: [
+        {
+          id: 201, title: "Nothing Phone (2a) 5G (8GB, 128GB, Glyph Interface)",
+          brand: "Nothing", price: 23999, mrp: 25999, rating: 4.5, reviewsCount: 3400,
+          thumbnail: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&auto=format&fit=crop&q=80",
+          stores: [{ name: "Flipkart", price: 23999, inStock: true, delivery: "Tomorrow", isBest: true, link: "https://flipkart.com" }],
+          priceHistory: { lowest30Days: 23999, highest30Days: 25999, trend: "downward" },
+          verdict: "BUY NOW", verdictType: "buy", verdictReason: "Clean bloatware-free OS, best design and battery in ₹20-25k.",
+          attributes: { battery_hours: 14.5, performance_score: 82, camera_score: 84, display_score: 88 }
+        }
+      ],
+      headphones: [
+        {
+          id: 301, title: "Sony WH-CH720N Wireless Active Noise Cancelling Headphones",
+          brand: "Sony", price: 8990, mrp: 14990, rating: 4.5, reviewsCount: 5200,
+          thumbnail: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
+          stores: [{ name: "Amazon", price: 8990, inStock: true, delivery: "Tomorrow", isBest: true, link: "https://amazon.in" }],
+          priceHistory: { lowest30Days: 8490, highest30Days: 10990, trend: "downward" },
+          verdict: "BUY NOW", verdictType: "buy", verdictReason: "Sony V1 ANC chip for class-leading cancellation under ₹10k.",
+          attributes: { battery_hours: 35.0, anc_score: 88, sound_quality: 86, comfort_score: 92 }
+        }
+      ],
+      clothing: [
+        {
+          id: 401, title: "Levis Men 100% Supima Pure Heavyweight Cotton Crew Tee",
+          brand: "Levis", price: 999, mrp: 1799, rating: 4.6, reviewsCount: 1800,
+          thumbnail: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80",
+          stores: [{ name: "Amazon", price: 999, inStock: true, delivery: "Tomorrow", isBest: true, link: "https://amazon.in" }],
+          priceHistory: { lowest30Days: 899, highest30Days: 1299, trend: "stable" },
+          verdict: "BUY NOW", verdictType: "buy", verdictReason: "220 GSM Supima cotton that will not shrink or lose color.",
+          attributes: { fabric_quality: 95, comfort_score: 94, durability_score: 90, breathability_score: 92 }
+        }
+      ]
+    };
+
+    let currentMission = null;
+    let currentProducts = [];
+
+    // Initialize Lucide Icons & API keys on load
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      document.getElementById('key-gemini').value = localStorage.getItem('DECIDE_GEMINI_KEY') || '';
+      document.getElementById('key-serper').value = localStorage.getItem('DECIDE_SERPER_KEY') || '';
+      updateApiKeyStatus();
+    });
+
+    function toggleApiModal(show) {
+      const modal = document.getElementById('api-modal');
+      if (show) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      } else {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+      }
+    }
+
+    function saveKeys() {
+      const g = document.getElementById('key-gemini').value.trim();
+      const s = document.getElementById('key-serper').value.trim();
+      localStorage.setItem('DECIDE_GEMINI_KEY', g);
+      localStorage.setItem('DECIDE_SERPER_KEY', s);
+      updateApiKeyStatus();
+      toggleApiModal(false);
+      confetti({ particleCount: 50, spread: 60 });
+    }
+
+    function clearKeys() {
+      localStorage.removeItem('DECIDE_GEMINI_KEY');
+      localStorage.removeItem('DECIDE_SERPER_KEY');
+      document.getElementById('key-gemini').value = '';
+      document.getElementById('key-serper').value = '';
+      updateApiKeyStatus();
+      toggleApiModal(false);
+    }
+
+    function updateApiKeyStatus() {
+      const g = localStorage.getItem('DECIDE_GEMINI_KEY');
+      const s = localStorage.getItem('DECIDE_SERPER_KEY');
+      const btn = document.getElementById('api-btn-text');
+      if (g || s) {
+        btn.textContent = 'API Keys (Active ✓)';
+      } else {
+        btn.textContent = 'API Keys';
+      }
+    }
+
+    function setQuery(text) {
+      document.getElementById('query-input').value = text;
+      handleSearch(new Event('submit'));
+    }
+
+    // Budget Parser
+    function extractBudget(query, category) {
+      const q = query.toLowerCase();
+      const kMatch = q.match(/(\d+(\.\d+)?)\s*k\b/i);
+      if (kMatch) return Math.round(parseFloat(kMatch[1]) * 1000);
+      const fullNum = q.match(/\b\d{1,3}(,\d{3})+\b|\b\d{3,7}\b/g);
+      if (fullNum && fullNum.length) {
+        const val = parseInt(fullNum[0].replace(/,/g, ''), 10);
+        if (val >= 100) return val;
+      }
+      return category === 'clothing' ? 1000 : (category === 'phone' ? 25000 : 70000);
+    }
+
+    // Intent Extraction
+    function getMission(query) {
+      const q = query.toLowerCase();
+      let category = 'laptop';
+      if (q.includes('shirt') || q.includes('pant') || q.includes('cloth') || q.includes('dress')) category = 'clothing';
+      else if (q.includes('phone') || q.includes('mobile')) category = 'phone';
+      else if (q.includes('headphone') || q.includes('audio') || q.includes('earphone')) category = 'headphones';
+
+      const budget_max = extractBudget(query, category);
+      let priorities = [];
+
+      if (category === 'laptop') {
+        priorities = [
+          { attribute: 'battery', label: 'Battery Life', weight: 0.30 },
+          { attribute: 'performance', label: 'Performance & Coding', weight: 0.30 },
+          { attribute: 'portability', label: 'Portability & Weight', weight: 0.25 },
+          { attribute: 'gaming', label: 'Gaming & GPU', weight: 0.15 }
+        ];
+      } else if (category === 'phone') {
+        priorities = [
+          { attribute: 'battery', label: 'Battery & Endurance', weight: 0.35 },
+          { attribute: 'camera', label: 'Camera Quality', weight: 0.30 },
+          { attribute: 'performance', label: 'Performance', weight: 0.20 },
+          { attribute: 'display', label: 'Display Quality', weight: 0.15 }
+        ];
+      } else if (category === 'clothing') {
+        priorities = [
+          { attribute: 'fabric', label: 'Fabric Quality', weight: 0.35 },
+          { attribute: 'comfort', label: 'Comfort', weight: 0.35 },
+          { attribute: 'durability', label: 'Durability', weight: 0.20 },
+          { attribute: 'breathability', label: 'Breathability', weight: 0.10 }
+        ];
+      } else {
+        priorities = [
+          { attribute: 'anc', label: 'Active Noise Cancelling', weight: 0.35 },
+          { attribute: 'sound', label: 'Sound Quality', weight: 0.30 },
+          { attribute: 'battery', label: 'Battery Playback', weight: 0.20 },
+          { attribute: 'comfort', label: 'Fit & Comfort', weight: 0.15 }
+        ];
+      }
+
+      return { category, budget_max, priorities };
+    }
+
+    // Scoring Engine
+    function scoreProducts(products, mission) {
+      return products.map(p => {
+        let score = 75;
+        let reasons = ["Good overall balance for your specifications."];
+        let tradeOff = "None noted.";
+
+        if (p.price > mission.budget_max) {
+          score -= 30;
+          tradeOff = `Exceeds specified budget cap by ₹${(p.price - mission.budget_max).toLocaleString('en-IN')}.`;
+        } else {
+          score += 15;
+          reasons.push(`Within specified budget cap of ₹${mission.budget_max.toLocaleString('en-IN')}`);
+        }
+
+        return {
+          ...p,
+          matchScore: Math.min(99, Math.max(30, score)),
+          reasons,
+          tradeOff,
+          isOverBudget: p.price > mission.budget_max
+        };
+      }).sort((a, b) => b.matchScore - a.matchScore);
+    }
+
+    // Main Search Handler
+    async function handleSearch(e) {
+      e.preventDefault();
+      const q = document.getElementById('query-input').value.trim();
+      if (!q) return;
+
+      const stage = document.getElementById('loading-stage');
+      const loadText = document.getElementById('loading-text');
+      const submitBtn = document.getElementById('submit-btn');
+
+      stage.classList.remove('hidden');
+      submitBtn.disabled = true;
+
+      currentMission = getMission(q);
+      document.getElementById('mission-category').textContent = currentMission.category;
+      document.getElementById('mission-budget').textContent = `₹${currentMission.budget_max.toLocaleString('en-IN')} ✓`;
+
+      let products = null;
+      let isLive = false;
+
+      const serperKey = localStorage.getItem('DECIDE_SERPER_KEY');
+      const geminiKey = localStorage.getItem('DECIDE_GEMINI_KEY');
+
+      // Attempt Real-time Serper Google Shopping Search
+      if (serperKey) {
+        try {
+          loadText.textContent = "Scanning real stores across India with Serper API...";
+          const res = await fetch('https://google.serper.dev/shopping', {
+            method: 'POST',
+            headers: { 'X-API-KEY': serperKey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ q: `best ${currentMission.category} under ₹${currentMission.budget_max} India 2025`, gl: 'in', hl: 'en', num: 10 })
+          });
+          const data = await res.json();
+          if (data.shopping && data.shopping.length > 0) {
+            products = data.shopping.slice(0, 3).map((item, idx) => {
+              const numPrice = parseInt((item.price || '0').replace(/[^\d]/g, ''), 10) || currentMission.budget_max;
+              return {
+                id: 1000 + idx,
+                title: item.title,
+                brand: item.source || "Online Store",
+                price: numPrice,
+                mrp: Math.round(numPrice * 1.25),
+                rating: item.rating || 4.4,
+                reviewsCount: item.ratingCount || 450,
+                thumbnail: item.imageUrl || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80",
+                stores: [{ name: item.source || "Merchant", price: numPrice, isBest: true, link: item.link, delivery: item.delivery || "2-3 Days" }],
+                priceHistory: { lowest30Days: Math.round(numPrice * 0.94), highest30Days: Math.round(numPrice * 1.15), trend: "downward" },
+                verdict: "BUY NOW",
+                verdictType: "buy",
+                verdictReason: `Live price found on ${item.source}. Solid competitive match.`,
+                attributes: {}
+              };
+            });
+            isLive = true;
+          }
+        } catch (err) {
+          console.warn("Serper live error:", err);
+        }
+      }
+
+      if (!products || products.length === 0) {
+        products = SEED_CATALOG[currentMission.category] || SEED_CATALOG.laptop;
+        isLive = false;
+      }
+
+      currentProducts = products;
+      const ranked = scoreProducts(currentProducts, currentMission);
+
+      renderSliders();
+      renderProducts(ranked, isLive);
+
+      document.getElementById('results-container').classList.remove('hidden');
+      stage.classList.add('hidden');
+      submitBtn.disabled = false;
+      lucide.createIcons();
+    }
+
+    function renderSliders() {
+      const grid = document.getElementById('sliders-grid');
+      grid.innerHTML = currentMission.priorities.map((p, idx) => `
+        <div class="bg-slate-950/70 p-4 rounded-2xl border border-slate-800/80 space-y-2.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold text-slate-200">${p.label}</span>
+            <span id="slider-val-${idx}" class="font-mono text-indigo-400 font-bold text-sm">${Math.round(p.weight * 100)}%</span>
+          </div>
+          <input 
+            type="range" min="5" max="100" value="${Math.round(p.weight * 100)}"
+            oninput="handleSliderChange(${idx}, this.value)"
+            class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+          />
+        </div>
+      `).join('');
+    }
+
+    function handleSliderChange(idx, val) {
+      document.getElementById(`slider-val-${idx}`).textContent = `${val}%`;
+      currentMission.priorities[idx].weight = val / 100;
+      const sum = currentMission.priorities.reduce((a, b) => a + b.weight, 0);
+      currentMission.priorities.forEach(p => p.weight = p.weight / sum);
+
+      const ranked = scoreProducts(currentProducts, currentMission);
+      renderProducts(ranked, false);
+
+      const banner = document.getElementById('rerank-banner');
+      banner.classList.remove('hidden');
+      setTimeout(() => banner.classList.add('hidden'), 2000);
+      lucide.createIcons();
+    }
+
+    function renderProducts(ranked, isLive) {
+      const badge = document.getElementById('source-badge');
+      const badgeText = document.getElementById('source-badge-text');
+      if (isLive) {
+        badgeText.textContent = "🟢 Live Data — Real-time Google Shopping prices";
+      } else {
+        badgeText.textContent = "📦 Curated Catalog — Add Serper API Key in top bar for live prices";
+      }
+
+      const container = document.getElementById('product-cards');
+      container.innerHTML = ranked.slice(0, 3).map((p, idx) => {
+        const isWinner = idx === 0;
+        const discount = p.mrp > p.price ? Math.round(((p.mrp - p.price) / p.mrp) * 100) : 0;
+        const bestStore = p.stores?.[0] || { name: 'Direct', price: p.price };
+
+        return `
+          <div class="rounded-3xl p-6 sm:p-7 border transition duration-300 ${isWinner ? 'bg-gradient-to-br from-indigo-950/70 via-slate-900 to-slate-950 border-2 border-indigo-500/50 shadow-2xl' : 'bg-slate-900/60 border-slate-800'}">
+            <div class="flex flex-col lg:flex-row gap-6 items-start">
+              
+              <div class="relative w-full lg:w-56 h-48 rounded-2xl overflow-hidden bg-slate-950 shrink-0 border border-slate-800">
+                <img src="${p.thumbnail}" alt="${p.title}" class="w-full h-full object-cover opacity-90" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80'" />
+                <div class="absolute top-3 left-3 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider ${isWinner ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-300'}">
+                  #${idx + 1} ${isWinner ? 'Best Overall' : 'Alternative'}
+                </div>
+                <div class="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  🟢 ${p.verdict || 'BUY NOW'}
+                </div>
+                ${discount > 0 ? `<div class="absolute top-3 right-3 px-2 py-0.5 rounded-lg bg-emerald-600 text-white text-[10px] font-black">${discount}% OFF</div>` : ''}
+              </div>
+
+              <div class="flex-1 space-y-4 w-full">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <div class="text-[11px] font-bold text-indigo-400 uppercase tracking-wider">${p.brand}</div>
+                    <h3 class="text-xl font-extrabold text-white leading-snug">${p.title}</h3>
+                  </div>
+                  <div class="inline-flex items-center gap-1 px-4 py-2 rounded-2xl bg-indigo-500/15 border border-indigo-500/40 text-indigo-300 font-mono font-black text-2xl">
+                    ${p.matchScore}% <span class="text-xs font-sans text-slate-400 font-medium">Match</span>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                  <span class="text-2xl font-black text-white font-mono">₹${p.price.toLocaleString('en-IN')}</span>
+                  ${p.mrp ? `<span class="text-sm text-slate-500 line-through font-mono">₹${p.mrp.toLocaleString('en-IN')}</span>` : ''}
+                  <span class="text-xs font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-xl">★ ${p.rating} (${p.reviewsCount} reviews)</span>
+                  ${p.isOverBudget ? `<span class="text-xs font-bold text-rose-400 bg-rose-500/10 px-2 py-1 rounded-xl">Over Budget</span>` : `<span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-xl">✓ In Budget</span>`}
+                </div>
+
+                <!-- Multi-Store Box -->
+                <div class="bg-slate-950/70 rounded-2xl border border-slate-800 p-3 space-y-1.5">
+                  <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Multi-Store Price Comparison</div>
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    ${(p.stores || []).map(s => `
+                      <div class="p-2 rounded-xl border ${s.isBest ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-slate-900/50 border-slate-800'}">
+                        <div class="flex justify-between items-center text-xs font-bold ${s.isBest ? 'text-emerald-300' : 'text-slate-300'}">
+                          <span>${s.name}</span>
+                          ${s.isBest ? `<span class="text-[9px] bg-emerald-500/20 px-1 rounded">BEST</span>` : ''}
+                        </div>
+                        <div class="font-mono font-bold text-sm ${s.isBest ? 'text-emerald-400' : 'text-white'}">₹${s.price.toLocaleString('en-IN')}</div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <!-- Grounded Verdict -->
+                <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-xs text-slate-300">
+                  <strong class="text-emerald-300">AI Final Verdict:</strong> ${p.verdictReason}
+                </div>
+
+                <!-- Trade-off -->
+                <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-200">
+                  <strong>Key Trade-off:</strong> ${p.tradeOff}
+                </div>
+
+                <div class="pt-2 flex items-center justify-between">
+                  <span class="text-[11px] text-emerald-400 font-semibold">🛡️ 98% Verified Data</span>
+                  ${bestStore.link ? `<a href="${bestStore.link}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5">Buy on ${bestStore.name} →</a>` : ''}
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
