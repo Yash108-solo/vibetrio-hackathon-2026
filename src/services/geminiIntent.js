@@ -4,8 +4,51 @@ const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 /**
+ * Robust, bulletproof budget extractor
+ * Correctly parses 50000, 50,000, 50k, 70k, 1.5L, 25000 rupees without regex truncating
+ */
+export function extractBudgetNumber(query, category) {
+  const q = query.toLowerCase();
+
+  // 1. Check for "k" notation: e.g. "50k", "70k", "25.5k", "8 k"
+  const kMatch = q.match(/\b(\d+(?:\.\d+)?)\s*k\b/i);
+  if (kMatch) {
+    return Math.round(parseFloat(kMatch[1]) * 1000);
+  }
+
+  // 2. Check for "lakh" or "lac": e.g. "1.5 lakh", "1 lakh"
+  const lakhMatch = q.match(/\b(\d+(?:\.\d+)?)\s*(?:lakh|lac|l)\b/i);
+  if (lakhMatch) {
+    return Math.round(parseFloat(lakhMatch[1]) * 100000);
+  }
+
+  // 3. Check for exact full numbers: e.g. "50000", "50,000", "70000", "25000", "8990"
+  const fullNumbers = q.match(/\b\d{1,3}(?:,\d{3})+\b|\b\d{4,7}\b/g);
+  if (fullNumbers && fullNumbers.length > 0) {
+    const raw = fullNumbers[0].replace(/,/g, '');
+    const val = parseInt(raw, 10);
+    if (!isNaN(val) && val >= 1000) {
+      return val;
+    }
+  }
+
+  // 4. Check for any digit following budget keywords
+  const keywordMatch = q.match(/(?:under|below|budget|max|upto|around|within|price|cost|rs\.?|inr|₹)\s*(\d[\d,]*)/i);
+  if (keywordMatch && keywordMatch[1]) {
+    const val = parseInt(keywordMatch[1].replace(/,/g, ''), 10);
+    if (!isNaN(val) && val > 0) {
+      return val < 500 ? val * 1000 : val;
+    }
+  }
+
+  // 5. Default category budgets if unspecified
+  if (category === 'phone') return 25000;
+  if (category === 'headphones') return 10000;
+  return 70000;
+}
+
+/**
  * Deterministic fallback mission extractor
- * Guarantees 100% demo-proof response even if offline or if API key is missing
  */
 function getFallbackMission(query) {
   const q = query.toLowerCase();
@@ -14,45 +57,31 @@ function getFallbackMission(query) {
   let category = 'laptop';
   if (q.includes('phone') || q.includes('mobile') || q.includes('smartphone')) {
     category = 'phone';
-  } else if (q.includes('headphone') || q.includes('earphone') || q.includes('audio') || q.includes('earbuds')) {
+  } else if (q.includes('headphone') || q.includes('earphone') || q.includes('audio') || q.includes('earbuds') || q.includes('anc')) {
     category = 'headphones';
   }
 
-  // 2. Extract Budget
-  let budget_max = 70000;
-  if (category === 'phone') budget_max = 25000;
-  if (category === 'headphones') budget_max = 10000;
-
-  const budgetMatch = q.match(/(?:under|below|budget|around|upto|max)\s*(?:₹|rs\.?|inr)?\s*(\d{1,3}(?:,\d{3})*|\d+)(?:\s*k)?/i);
-  if (budgetMatch) {
-    let numStr = budgetMatch[1].replace(/,/g, '');
-    let num = parseInt(numStr, 10);
-    if (q.includes(`${budgetMatch[1]}k`) || q.includes(`${budgetMatch[1]} k`)) {
-      num = num * 1000;
-    } else if (num < 1000) {
-      num = num * 1000; // e.g. "70k" or "under 70"
-    }
-    if (!isNaN(num) && num > 0) budget_max = num;
-  }
+  // 2. Extract Budget (Bulletproof)
+  const budget_max = extractBudgetNumber(query, category);
 
   // 3. Category-specific Priorities
   let priorities = [];
   if (category === 'laptop') {
     const batteryHigh = q.includes('battery') || q.includes('backup');
-    const gamingHigh = q.includes('game') || q.includes('gaming');
-    const portHigh = q.includes('portab') || q.includes('travel') || q.includes('light');
-    const codingHigh = q.includes('code') || q.includes('coding') || q.includes('perform') || q.includes('cs');
+    const gamingHigh = q.includes('game') || q.includes('gaming') || q.includes('gpu');
+    const portHigh = q.includes('portab') || q.includes('travel') || q.includes('light') || q.includes('weight');
+    const codingHigh = q.includes('code') || q.includes('coding') || q.includes('perform') || q.includes('cs') || q.includes('program');
 
     priorities = [
       { attribute: 'battery', label: 'Battery Life', weight: batteryHigh ? 0.30 : 0.20, importance: batteryHigh ? 'HIGH' : 'MEDIUM' },
-      { attribute: 'performance', label: 'Performance & Coding', weight: codingHigh ? 0.30 : 0.20, importance: 'HIGH' },
-      { attribute: 'portability', label: 'Portability & Weight', weight: portHigh ? 0.20 : 0.15, importance: portHigh ? 'HIGH' : 'MEDIUM' },
-      { attribute: 'gaming', label: 'Gaming & GPU', weight: gamingHigh ? 0.15 : 0.10, importance: gamingHigh ? 'HIGH' : 'LOW' },
-      { attribute: 'display', label: 'Display Quality', weight: 0.05, importance: 'LOW' }
+      { attribute: 'performance', label: 'Performance & Coding', weight: codingHigh ? 0.30 : 0.25, importance: 'HIGH' },
+      { attribute: 'portability', label: 'Portability & Weight', weight: portHigh ? 0.25 : 0.20, importance: portHigh ? 'HIGH' : 'MEDIUM' },
+      { attribute: 'gaming', label: 'Gaming & GPU', weight: gamingHigh ? 0.20 : 0.15, importance: gamingHigh ? 'HIGH' : 'LOW' },
+      { attribute: 'display', label: 'Display Quality', weight: 0.10, importance: 'LOW' }
     ];
   } else if (category === 'phone') {
     const batteryHigh = q.includes('battery') || q.includes('day');
-    const cameraHigh = q.includes('camera') || q.includes('photo');
+    const cameraHigh = q.includes('camera') || q.includes('photo') || q.includes('video');
     const gamingHigh = q.includes('game') || q.includes('gaming');
 
     priorities = [
@@ -64,7 +93,7 @@ function getFallbackMission(query) {
     ];
   } else { // headphones
     const ancHigh = q.includes('noise') || q.includes('anc') || q.includes('cancel');
-    const batteryHigh = q.includes('battery') || q.includes('hours');
+    const batteryHigh = q.includes('battery') || q.includes('hours') || q.includes('play');
     const comfortHigh = q.includes('comfort') || q.includes('travel') || q.includes('study');
 
     priorities = [
@@ -85,24 +114,21 @@ function getFallbackMission(query) {
     category,
     budget_max,
     priorities,
-    summary: `Extracted intent for ${category} under ₹${budget_max.toLocaleString('en-IN')}`
+    summary: `Decision model for ${category} with strict cap of ₹${budget_max.toLocaleString('en-IN')}`
   };
 }
 
 /**
  * GEMINI CALL #1: Structured Intent Extraction
- * Extracts category, max budget, and normalized priority weights from natural language
  */
 export async function extractShoppingMission(userQuery) {
   if (!userQuery || !userQuery.trim()) {
     throw new Error("Query cannot be empty");
   }
 
-  // If no Gemini API key is configured, instantly use deterministic extractor
   if (!apiKey || !genAI) {
-    console.log("Using deterministic intent extractor (offline / no API key)");
     const fallback = getFallbackMission(userQuery);
-    console.log("🎯 Extracted Mission JSON:", fallback);
+    console.log("🎯 Extracted Mission JSON (Deterministic Engine):", fallback);
     return fallback;
   }
 
@@ -113,12 +139,12 @@ export async function extractShoppingMission(userQuery) {
         responseMimeType: "application/json",
         temperature: 0.1,
       },
-      systemInstruction: `You are the Intent Extraction Engine for DECIDE, a transparent shopping decision system.
+      systemInstruction: `You are the Intent Extraction Engine for DECIDE.
 Analyze the user's natural language shopping need and output ONLY a valid JSON object matching this schema:
 
 {
   "category": "laptop" | "phone" | "headphones",
-  "budget_max": number (in INR, e.g. 70000, 25000, 10000. Extract from text like "under 70k", "under ₹70,000", "below 25000", etc. If unspecified, use defaults: laptop 70000, phone 25000, headphones 10000),
+  "budget_max": number (CRITICAL: Exact integer in INR. e.g. "50000 rupees" -> 50000, "70k" -> 70000, "25,000" -> 25000, "8990" -> 8990. Do NOT add extra zeros),
   "priorities": [
     {
       "attribute": "battery" | "performance" | "portability" | "gaming" | "display" | "camera" | "anc" | "sound" | "comfort",
@@ -128,19 +154,16 @@ Analyze the user's natural language shopping need and output ONLY a valid JSON o
     }
   ],
   "summary": "Concise 1-line statement of user's core trade-off priorities"
-}
-
-Rule: Always include 4 to 5 relevant priority attributes for the detected category. Weights MUST sum to 1.0.`
+}`
     });
 
     const result = await model.generateContent(userQuery);
     const text = result.response.text();
     const parsed = JSON.parse(text);
 
-    // Sanitize and validate
-    if (!parsed.category || !parsed.budget_max || !Array.isArray(parsed.priorities)) {
-      throw new Error("Invalid structure from Gemini");
-    }
+    // Double-check budget parsing with regex sanitizer in case Gemini hallucinated a multiplier
+    const sanitizedBudget = extractBudgetNumber(userQuery, parsed.category || 'laptop');
+    parsed.budget_max = sanitizedBudget;
 
     // Ensure weights sum to 1.0
     const totalWeight = parsed.priorities.reduce((sum, p) => sum + (Number(p.weight) || 0.1), 0);
