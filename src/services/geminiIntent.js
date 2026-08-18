@@ -121,6 +121,15 @@ function getFallbackMission(query) {
       { attribute: 'flavor', label: 'Taste & Mixability', weight: 0.20, importance: 'MEDIUM' },
       { attribute: 'value', label: 'Cost Per Scoop', weight: 0.15, importance: 'MEDIUM' }
     ];
+  } else if (q.includes('car') || q.includes('automobile') || q.includes('vehicle') || q.includes('sedan') || q.includes('suv') || q.includes('hatchback')) {
+    category = 'car';
+    defaultBudget = 500000;
+    priorities = [
+      { attribute: 'safety', label: 'Safety & NCAP Rating', weight: 0.30, importance: 'HIGH' },
+      { attribute: 'mileage', label: 'Fuel Efficiency (kmpl)', weight: 0.25, importance: 'HIGH' },
+      { attribute: 'durability', label: 'Build Quality & Durability', weight: 0.25, importance: 'HIGH' },
+      { attribute: 'features', label: 'Features & Comfort', weight: 0.20, importance: 'MEDIUM' }
+    ];
   } else {
     category = searchTerm;
     defaultBudget = 5000;

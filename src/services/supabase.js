@@ -85,6 +85,19 @@ function getMarketCandidates(searchTerm = '', budget = 2500, category = '') {
     ];
   }
 
+  // 6a. Cars / Automobiles (must be BEFORE smartphones to catch "car")
+  if (text.includes('car') || text.includes('automobile') || text.includes('vehicle') || text.includes('sedan') || text.includes('suv') || text.includes('hatchback') || text.includes('maruti') || text.includes('tata') || text.includes('hyundai') || text.includes('honda')) {
+    return [
+      { title: "Maruti Suzuki Swift ZXI+ (Petrol, Manual, 23.76 kmpl, 5-Star Safety)", brand: "Maruti Suzuki", price: Math.min(b, 899000), rating: 4.6, reviewsCount: 18500 },
+      { title: "Tata Nexon XZ+ (Petrol, Manual, 17.01 kmpl, 5-Star GNCAP Safety)", brand: "Tata Motors", price: Math.min(Math.round(b * 0.95), 1029000), rating: 4.7, reviewsCount: 14200 },
+      { title: "Hyundai i20 Asta (O) (Petrol, Manual, 20.35 kmpl, Sunroof)", brand: "Hyundai", price: Math.min(Math.round(b * 1.05), 1099000), rating: 4.5, reviewsCount: 9800 },
+      { title: "Maruti Suzuki Baleno Alpha (Petrol, Auto, 22.35 kmpl, HUD Display)", brand: "Maruti Suzuki", price: Math.min(Math.round(b * 0.85), 849900), rating: 4.5, reviewsCount: 12100 },
+      { title: "Honda City ZX (Petrol, Manual, 17.8 kmpl, Lane Watch Camera)", brand: "Honda", price: Math.min(Math.round(b * 1.15), 1499000), rating: 4.6, reviewsCount: 7600 },
+      { title: "Tata Punch Creative (Petrol, Manual, 18.97 kmpl, Compact SUV)", brand: "Tata Motors", price: Math.min(Math.round(b * 0.80), 799900), rating: 4.5, reviewsCount: 11300 },
+      { title: "Hyundai Grand i10 Nios Sportz (Petrol, Manual, 20.7 kmpl, Budget Pick)", brand: "Hyundai", price: Math.min(Math.round(b * 0.70), 699900), rating: 4.3, reviewsCount: 8900 },
+    ];
+  }
+
   // 6. Smartphones
   if (text.includes('smartphone') || text.includes('mobile') || text.includes('phone') || text.includes('iphone') || text.includes('redmi') || text.includes('samsung')) {
     return [

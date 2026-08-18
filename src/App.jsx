@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Sparkles, Search, Sliders, CheckCircle2, ArrowRight, 
   Laptop, Smartphone, Zap, Check, Info, Award,
@@ -37,6 +37,7 @@ export default function App() {
   const [isApiModalOpen, setIsApiModalOpen] = useState(false);
   const [isGuideMeOpen, setIsGuideMeOpen] = useState(false);
   const [currency, setCurrency] = useState('INR'); // 'INR' | 'USD'
+  const isRunning = useRef(false); // Prevent concurrent pipeline runs
 
   const USD_RATE = 87.5; // 1 USD = 87.5 INR
 
@@ -90,9 +91,21 @@ export default function App() {
     const targetText = textToExtract || query;
     if (!targetText.trim()) return;
 
+    // Prevent duplicate concurrent runs
+    if (isRunning.current) {
+      console.warn('[Pipeline] Already running, ignoring duplicate call');
+      return;
+    }
+    isRunning.current = true;
+
+    // Full state reset for every new search
     setLoading(true);
     setIsRealTime(false);
-    setRankedProducts([]); // Clear previous results
+    setMission(null);
+    setRankedProducts([]);
+    setRawProducts([]);
+    setJsonLog('');
+    setLoadingStage('Starting analysis...');
 
     try {
       // ── STEP 1: Extract Shopping Intent ──
@@ -203,6 +216,7 @@ export default function App() {
     } finally {
       setLoading(false);
       setLoadingStage('');
+      isRunning.current = false; // Always unlock so next search works
     }
   };
 
