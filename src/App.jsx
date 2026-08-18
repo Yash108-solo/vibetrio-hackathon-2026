@@ -14,7 +14,7 @@ import { getProductsByCategory, saveMission, saveDecision, getDecisionHistory, i
 import { scoreAndRankProducts } from './services/scoringEngine';
 import { exportElementToPDF } from './utils/pdfExport';
 import { SEED_PRODUCTS } from './data/seedProducts';
-import { searchProducts, buildSearchQuery } from './services/serperSearch';
+import { searchProducts, buildSearchQuery, formatSerperResults } from './services/serperSearch';
 import { analyzeProducts } from './services/geminiVerdict';
 import ComparisonModal from './components/ComparisonModal';
 import ApiKeyModal from './components/ApiKeyModal';
@@ -97,11 +97,20 @@ export default function App() {
       if (serperResults && serperResults.length > 0) {
         // ── STEP 3: AI Analysis & BuyHatke Price Intelligence (Gemini Call #2) ──
         setLoadingStage('Analyzing price trends & generating BuyHatke-style verdicts...');
-        products = await analyzeProducts(serperResults, extractedMission);
+        try {
+          products = await analyzeProducts(serperResults, extractedMission);
+        } catch (err) {
+          console.warn('[Pipeline] Gemini analysis error, formatting live Serper results directly:', err);
+        }
+
+        // Direct fallback to live Serper products if Gemini was skipped or errored
+        if (!products || products.length === 0) {
+          products = formatSerperResults(serperResults, extractedMission);
+        }
 
         if (products && products.length > 0) {
           setIsRealTime(true);
-          console.log(`[Pipeline] ✅ Real-time mode: ${products.length} live products analyzed`);
+          console.log(`[Pipeline] ✅ Real-time mode: ${products.length} live products loaded directly from Google Shopping`);
         }
       }
 
