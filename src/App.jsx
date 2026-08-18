@@ -105,10 +105,10 @@ export default function App() {
         }
       }
 
-      // ── STEP 4: Fallback to Seed Catalog if APIs failed or returned empty ──
+      // ── STEP 4: Fallback to Curated Catalog if APIs failed or returned empty ──
       if (!products || products.length === 0) {
         setLoadingStage('Matching with curated product catalog...');
-        products = await getProductsByCategory(extractedMission.category);
+        products = await getProductsByCategory(extractedMission.category, extractedMission);
         setIsRealTime(false);
         console.log(`[Pipeline] 📦 Seed mode: ${products.length} products loaded`);
       }
