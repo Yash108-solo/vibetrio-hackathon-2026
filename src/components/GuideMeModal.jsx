@@ -101,8 +101,10 @@ export default function GuideMeModal({ isOpen, onClose, onComplete }) {
     }
 
     confetti({ particleCount: 80, spread: 90, origin: { y: 0.6 } });
-    onComplete(finalPrompt, budgetNum);
-    onClose();
+    onClose(); // close modal first
+    setTimeout(() => {
+      onComplete(finalPrompt, budgetNum); // then trigger search after modal is gone
+    }, 50);
   };
 
   return (
