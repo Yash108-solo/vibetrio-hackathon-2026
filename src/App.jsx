@@ -1,193 +1,187 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Sparkles, ShieldCheck, Zap, Terminal, BarChart3, 
-  Download, MessageSquare, Award, ArrowRight, Layers,
-  Users, Activity, TrendingUp
+  Database, CheckCircle2, ShieldCheck, Sparkles, 
+  Layers, ArrowRight, Laptop, Smartphone, Headphones,
+  Sliders, Star, Cpu, Battery, Eye
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
-import { generateAIResponse } from './services/gemini';
-import AIChatDrawer from './components/AIChatDrawer';
-import StatsCard from './components/StatsCard';
-import { exportElementToPDF } from './utils/pdfExport';
+import { SEED_PRODUCTS } from './data/seedProducts';
+import { isSupabaseConfigured, getProductsByCategory } from './services/supabase';
 
 export default function App() {
-  const [prompt, setPrompt] = useState('');
-  const [aiOutput, setAiOutput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
+  const [products, setProducts] = useState(SEED_PRODUCTS);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [dbStatus, setDbStatus] = useState({
+    configured: isSupabaseConfigured,
+    totalProducts: SEED_PRODUCTS.length,
+    categories: ['laptop', 'phone', 'headphones']
+  });
 
-  const triggerConfetti = () => {
-    confetti({
-      particleCount: 120,
-      spread: 80,
-      origin: { y: 0.6 }
-    });
-  };
-
-  const handleTestAI = async (e) => {
-    e.preventDefault();
-    if (!prompt.trim()) return;
-    setLoading(true);
-    setAiOutput('');
-    const res = await generateAIResponse(
-      prompt,
-      "You are the AI engine for Team VibeTrio. Provide punchy, innovative, technically sound insights."
-    );
-    setAiOutput(res);
-    setLoading(false);
-  };
+  const filteredProducts = selectedCategory === 'all'
+    ? products
+    : products.filter(p => p.category === selectedCategory);
 
   return (
-    <div id="main-dashboard" className="min-h-screen bg-slate-950 text-slate-100 flex flex-col antialiased">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
       
-      {/* Top Navigation */}
-      <header className="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md sticky top-0 z-40">
+      {/* Top Navigation Bar */}
+      <header className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white font-bold shadow-lg shadow-indigo-500/20">
-              <Zap className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 flex items-center justify-center font-black text-white text-lg shadow-lg shadow-indigo-500/25">
+              D
             </div>
             <div>
-              <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">
-                VibeTrio <span className="text-indigo-400 font-mono text-sm">v2.0</span>
-              </span>
-              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">IEEE MHSSCE Hackathon</p>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent">
+                  DECIDE
+                </span>
+                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-semibold">
+                  Phase 1 Verified
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-medium">A Transparent Decision Model for Shopping</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => exportElementToPDF('main-dashboard', 'VibeTrio_Hackathon_Overview.pdf')}
-              className="hidden sm:inline-flex items-center gap-2 text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 px-3 py-2 rounded-xl transition"
-            >
-              <Download className="w-4 h-4 text-slate-400" />
-              <span>Export PDF Report</span>
-            </button>
-
-            <button
-              onClick={() => setIsAIChatOpen(true)}
-              className="inline-flex items-center gap-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl shadow-lg shadow-indigo-600/30 transition"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>AI Assistant</span>
-            </button>
+          {/* Database Health Badge */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
+            <Database className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Database:</span>
+            <span className="font-mono text-emerald-400 font-semibold">{dbStatus.totalProducts} Verified Products</span>
           </div>
         </div>
       </header>
 
-      {/* Main Container */}
+      {/* Phase 1 Verification Canvas */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
         
-        {/* Hero Section */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-950/50 via-slate-900 to-slate-950 border border-indigo-500/20 p-6 sm:p-10 shadow-2xl">
-          <div className="relative z-10 max-w-2xl space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              All Systems Operational • Hackathon Mode
+        {/* Phase 1 Banner */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800 p-6 sm:p-8 shadow-2xl">
+          <div className="max-w-3xl space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Phase 1 Checkpoint: Foundation & Product Catalog Seeded
             </div>
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              Ready to code, innovate, and <span className="bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">dominate</span>.
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+              Know what to buy — and <span className="bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">what you're giving up.</span>
             </h1>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              Plug-and-play architecture with high-speed GenAI integration, interactive KPI analytics, and instant data persistence.
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Database schema created with <strong className="text-slate-200">products</strong>, <strong className="text-slate-200">missions</strong>, and <strong className="text-slate-200">decisions</strong> tables. Curated dataset with realistic INR pricing and benchmark attributes loaded.
             </p>
-            <div className="pt-2 flex flex-wrap items-center gap-3">
-              <button 
-                onClick={triggerConfetti}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-600/30 transition"
-              >
-                <Award className="w-4 h-4" />
-                <span>Test Micro-Interactions</span>
-              </button>
-            </div>
           </div>
         </div>
 
-        {/* Live Metrics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatsCard 
-            title="System Throughput" 
-            value="99.8%" 
-            change="+4.2%" 
-            isPositive={true} 
-            icon={Activity} 
-            color="emerald" 
-          />
-          <StatsCard 
-            title="AI Response Time" 
-            value="0.42s" 
-            change="⚡ Ultra-Fast" 
-            isPositive={true} 
-            icon={Zap} 
-            color="indigo" 
-          />
-          <StatsCard 
-            title="Active Modules" 
-            value="12 / 12" 
-            change="Ready" 
-            isPositive={true} 
-            icon={Layers} 
-            color="blue" 
-          />
-          <StatsCard 
-            title="Team Readiness" 
-            value="100%" 
-            change="Rank #1" 
-            isPositive={true} 
-            icon={Award} 
-            color="amber" 
-          />
-        </div>
-
-        {/* AI Testing Interactive Panel */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-slate-200 font-semibold text-sm">
-              <Terminal className="w-4 h-4 text-indigo-400" />
-              <span>Direct AI Engine Interface</span>
-            </div>
-            <span className="text-[11px] font-mono text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
-              gemini-1.5-flash
-            </span>
-          </div>
-
-          <form onSubmit={handleTestAI} className="flex flex-col sm:flex-row gap-2">
-            <input 
-              type="text" 
-              value={prompt} 
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Ask anything (e.g. 'Generate 3 USP features for smart energy conservation')..."
-              className="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
-            />
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-3 rounded-xl text-sm transition disabled:opacity-50 flex items-center justify-center gap-2 shrink-0 shadow-lg shadow-indigo-600/30"
+        {/* Category Filters */}
+        <div className="flex items-center justify-between flex-wrap gap-4 border-b border-slate-800/80 pb-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedCategory('all')}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
+                selectedCategory === 'all'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                  : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
+              }`}
             >
-              {loading ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <Sparkles className="w-4 h-4" />
-              )}
-              <span>{loading ? "Processing..." : "Generate Insights"}</span>
+              <Layers className="w-3.5 h-3.5" />
+              <span>All Products ({products.length})</span>
             </button>
-          </form>
 
-          {aiOutput && (
-            <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
-              {aiOutput}
+            <button
+              onClick={() => setSelectedCategory('laptop')}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
+                selectedCategory === 'laptop'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                  : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
+              }`}
+            >
+              <Laptop className="w-3.5 h-3.5" />
+              <span>Laptops</span>
+            </button>
+
+            <button
+              onClick={() => setSelectedCategory('phone')}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
+                selectedCategory === 'phone'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                  : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
+              }`}
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Phones</span>
+            </button>
+
+            <button
+              onClick={() => setSelectedCategory('headphones')}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
+                selectedCategory === 'headphones'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                  : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
+              }`}
+            >
+              <Headphones className="w-3.5 h-3.5" />
+              <span>Headphones</span>
+            </button>
+          </div>
+
+          <div className="text-xs text-slate-500 font-mono">
+            Showing {filteredProducts.length} items with benchmark attributes
+          </div>
+        </div>
+
+        {/* Product Cards Grid Preview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredProducts.map((product) => (
+            <div 
+              key={product.id}
+              className="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 transition flex flex-col group shadow-md"
+            >
+              {/* Image & Price Header */}
+              <div className="relative h-44 bg-slate-950 overflow-hidden">
+                <img 
+                  src={product.thumbnail} 
+                  alt={product.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-85"
+                />
+                <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md border border-slate-800 text-[11px] font-semibold text-indigo-400 px-2.5 py-1 rounded-lg uppercase tracking-wider">
+                  {product.brand}
+                </div>
+                <div className="absolute bottom-3 right-3 bg-slate-950/90 backdrop-blur-md border border-slate-800 text-white font-extrabold text-sm px-3 py-1.5 rounded-xl shadow-lg">
+                  ₹{product.price.toLocaleString('en-IN')}
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-semibold text-sm text-slate-100 line-clamp-1">{product.title}</h3>
+                    <span className="flex items-center text-xs text-amber-400 font-semibold shrink-0">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 mr-1" />
+                      {product.rating}
+                    </span>
+                  </div>
+
+                  {/* Benchmark Attributes */}
+                  <div className="mt-3 pt-3 border-t border-slate-800/80 grid grid-cols-2 gap-2 text-[11px]">
+                    {Object.entries(product.attributes).slice(0, 4).map(([key, val]) => (
+                      <div key={key} className="bg-slate-950/60 px-2.5 py-1.5 rounded-lg border border-slate-800/60 flex items-center justify-between">
+                        <span className="text-slate-400 capitalize">{key.replace('_score', '').replace('_', ' ')}</span>
+                        <span className="font-mono text-indigo-300 font-semibold">{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
+          ))}
         </div>
 
       </main>
 
-      {/* Embedded Slide-over AI Chat Assistant */}
-      <AIChatDrawer 
-        isOpen={isAIChatOpen} 
-        onClose={() => setIsAIChatOpen(false)} 
-        systemContext="Team VibeTrio Hackathon prototype"
-      />
+      {/* Footer */}
+      <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-600">
+        DECIDE • VibeTrio • VibeCode Hackathon 2.0 (MHSSCE)
+      </footer>
     </div>
   );
 }

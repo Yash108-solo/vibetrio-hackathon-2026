@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
+    "@supabase/supabase-js": "^2.112.3",
     "axios": "^1.7.9",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
+    "firebase": "^12.17.1",
     "framer-motion": "^13.1.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
