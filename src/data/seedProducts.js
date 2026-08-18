@@ -1,7 +1,7 @@
 /**
  * DECIDE / ShopSense AI - Multi-Category Grounded Product Catalog
  * Includes Laptops, Watches, Phones, Audio, Fashion, etc.
- * Enriched with BuyHatke-style price history and multi-store pricing.
+ * Enriched with BuyHatke-style price history and direct deep-links across Amazon, Flipkart, Tata CLiQ, Titan, etc.
  */
 
 export const SEED_PRODUCTS = [
@@ -19,9 +19,9 @@ export const SEED_PRODUCTS = [
     reviewsCount: 3850,
     thumbnail: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=600&auto=format&fit=crop&q=80",
     stores: [
-      { name: "Titan.co.in", price: 3995, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: true, link: "https://titan.co.in" },
-      { name: "Amazon India", price: 4195, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: false, link: "https://amazon.in" },
-      { name: "Flipkart", price: 4350, inStock: true, delivery: "2 Days", returnDays: 10, isBest: false, link: "https://flipkart.com" }
+      { name: "Titan.co.in", price: 3995, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: true, link: "https://www.titan.co.in/search?q=Titan+Neo+Splash+Analog+Black+Dial" },
+      { name: "Amazon India", price: 4195, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: false, link: "https://www.amazon.in/s?k=Titan+Neo+Splash+Analog+Black+Dial+Men+Watch" },
+      { name: "Flipkart", price: 4350, inStock: true, delivery: "2 Days", returnDays: 10, isBest: false, link: "https://www.flipkart.com/search?q=Titan+Neo+Splash+Analog+Black+Dial" }
     ],
     priceHistory: {
       lowest30Days: 3899,
@@ -62,9 +62,9 @@ export const SEED_PRODUCTS = [
     reviewsCount: 2100,
     thumbnail: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&auto=format&fit=crop&q=80",
     stores: [
-      { name: "Amazon India", price: 4495, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: true, link: "https://amazon.in" },
-      { name: "Tata CLiQ", price: 4695, inStock: true, delivery: "2 Days", returnDays: 14, isBest: false, link: "https://tatacliq.com" },
-      { name: "Myntra", price: 4995, inStock: true, delivery: "Tomorrow", returnDays: 14, isBest: false, link: "https://myntra.com" }
+      { name: "Amazon India", price: 4495, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: true, link: "https://www.amazon.in/s?k=Titan+Workwear+Chronograph+Silver+Dial+Men+Watch" },
+      { name: "Tata CLiQ", price: 4695, inStock: true, delivery: "2 Days", returnDays: 14, isBest: false, link: "https://www.tatacliq.com/search/?searchCategory=all&text=Titan+Workwear+Chronograph" },
+      { name: "Myntra", price: 4995, inStock: true, delivery: "Tomorrow", returnDays: 14, isBest: false, link: "https://www.myntra.com/Titan-Workwear-Chronograph" }
     ],
     priceHistory: {
       lowest30Days: 4299,
@@ -105,8 +105,8 @@ export const SEED_PRODUCTS = [
     reviewsCount: 9400,
     thumbnail: "https://images.unsplash.com/photo-1542496658-e33a6d0d50f6?w=600&auto=format&fit=crop&q=80",
     stores: [
-      { name: "Amazon India", price: 3495, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: true, link: "https://amazon.in" },
-      { name: "Casio Store", price: 3995, inStock: true, delivery: "3 Days", returnDays: 7, isBest: false, link: "https://casio.com" }
+      { name: "Amazon India", price: 3495, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: true, link: "https://www.amazon.in/s?k=Casio+Vintage+Digital+Gunmetal+Stainless+Steel+Watch+A168WGG" },
+      { name: "Casio Store", price: 3995, inStock: true, delivery: "3 Days", returnDays: 7, isBest: false, link: "https://www.casioindiashop.com/search.php?q=A168WGG" }
     ],
     priceHistory: {
       lowest30Days: 3295,
@@ -151,9 +151,9 @@ export const SEED_PRODUCTS = [
     reviewsCount: 1420,
     thumbnail: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600&auto=format&fit=crop&q=80",
     stores: [
-      { name: "Amazon", price: 68990, inStock: true, delivery: "Tomorrow, 2 PM", returnDays: 7, isBest: true, link: "https://amazon.in" },
-      { name: "Flipkart", price: 69990, inStock: true, delivery: "2 Days", returnDays: 7, isBest: false, link: "https://flipkart.com" },
-      { name: "Croma", price: 71490, inStock: true, delivery: "In-store pickup", returnDays: 15, isBest: false, link: "https://croma.com" }
+      { name: "Amazon India", price: 68990, inStock: true, delivery: "Tomorrow, 2 PM", returnDays: 7, isBest: true, link: "https://www.amazon.in/s?k=Lenovo+LOQ+15+Ryzen+7+7840HS+RTX+4050" },
+      { name: "Flipkart", price: 69990, inStock: true, delivery: "2 Days", returnDays: 7, isBest: false, link: "https://www.flipkart.com/search?q=Lenovo+LOQ+15+Ryzen+7+7840HS+RTX+4050" },
+      { name: "Croma", price: 71490, inStock: true, delivery: "In-store pickup", returnDays: 15, isBest: false, link: "https://www.croma.com/searchB?q=Lenovo+LOQ+15+RTX+4050" }
     ],
     priceHistory: {
       lowest30Days: 67990,
@@ -194,8 +194,8 @@ export const SEED_PRODUCTS = [
     reviewsCount: 980,
     thumbnail: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&auto=format&fit=crop&q=80",
     stores: [
-      { name: "Flipkart", price: 64990, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: true, link: "https://flipkart.com" },
-      { name: "Amazon", price: 65490, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: false, link: "https://amazon.in" }
+      { name: "Flipkart", price: 64990, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: true, link: "https://www.flipkart.com/search?q=ASUS+Vivobook+15+OLED+i5+13500H" },
+      { name: "Amazon India", price: 65490, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: false, link: "https://www.amazon.in/s?k=ASUS+Vivobook+15+OLED+Intel+Core+i5+13500H" }
     ],
     priceHistory: {
       lowest30Days: 63990,
@@ -240,8 +240,8 @@ export const SEED_PRODUCTS = [
     reviewsCount: 3400,
     thumbnail: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&auto=format&fit=crop&q=80",
     stores: [
-      { name: "Flipkart", price: 23999, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: true, link: "https://flipkart.com" },
-      { name: "Amazon", price: 24499, inStock: true, delivery: "2 Days", returnDays: 7, isBest: false, link: "https://amazon.in" }
+      { name: "Flipkart", price: 23999, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: true, link: "https://www.flipkart.com/search?q=Nothing+Phone+2a+5G" },
+      { name: "Amazon India", price: 24499, inStock: true, delivery: "2 Days", returnDays: 7, isBest: false, link: "https://www.amazon.in/s?k=Nothing+Phone+2a+5G" }
     ],
     priceHistory: {
       lowest30Days: 23999,
@@ -286,8 +286,8 @@ export const SEED_PRODUCTS = [
     reviewsCount: 5200,
     thumbnail: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
     stores: [
-      { name: "Amazon", price: 8990, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: true, link: "https://amazon.in" },
-      { name: "Flipkart", price: 9490, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: false, link: "https://flipkart.com" }
+      { name: "Amazon India", price: 8990, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: true, link: "https://www.amazon.in/s?k=Sony+WH-CH720N+Wireless+Noise+Cancelling+Headphones" },
+      { name: "Flipkart", price: 9490, inStock: true, delivery: "Tomorrow", returnDays: 7, isBest: false, link: "https://www.flipkart.com/search?q=Sony+WH-CH720N+Headphones" }
     ],
     priceHistory: {
       lowest30Days: 8490,
@@ -332,8 +332,8 @@ export const SEED_PRODUCTS = [
     reviewsCount: 1800,
     thumbnail: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80",
     stores: [
-      { name: "Amazon", price: 999, inStock: true, delivery: "Tomorrow", returnDays: 14, isBest: true, link: "https://amazon.in" },
-      { name: "Myntra", price: 1099, inStock: true, delivery: "Tomorrow", returnDays: 14, isBest: false, link: "https://myntra.com" }
+      { name: "Amazon India", price: 999, inStock: true, delivery: "Tomorrow", returnDays: 14, isBest: true, link: "https://www.amazon.in/s?k=Levis+Men+100+Supima+Pure+Heavyweight+Cotton+T-Shirt" },
+      { name: "Myntra", price: 1099, inStock: true, delivery: "Tomorrow", returnDays: 14, isBest: false, link: "https://www.myntra.com/Levis-Men-100-Supima-Cotton-T-Shirt" }
     ],
     priceHistory: {
       lowest30Days: 899,
