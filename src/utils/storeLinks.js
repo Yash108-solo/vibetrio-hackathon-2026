@@ -1,11 +1,10 @@
 /**
- * DECIDE - Direct E-Commerce Store Link Generator
- * Generates exact deep links to products across Indian shopping platforms:
- * Amazon India, Flipkart, Myntra, Tata CLiQ, Croma, Titan, Reliance Digital, Ajio, Meesho
+ * DECIDE - Comprehensive Multi-Platform E-Commerce Store Link Generator
+ * Supports: Amazon India, Flipkart, Meesho, Myntra, Croma, Reliance Digital,
+ * Tata CLiQ, Blinkit, Zepto, Nykaa, HealthKart, and Official Brand Stores.
  */
 
 export function buildStoreDirectLink(storeName = '', productTitle = '', originalLink = '') {
-  // If original link is a valid full product URL from Google Shopping matching the merchant, prioritize it
   if (originalLink && originalLink.startsWith('http') && !originalLink.includes('google.com/url') && originalLink !== '#') {
     return originalLink;
   }
@@ -17,133 +16,144 @@ export function buildStoreDirectLink(storeName = '', productTitle = '', original
   if (name.includes('amazon')) {
     return `https://www.amazon.in/s?k=${encodedTitle}&ref=nb_sb_noss`;
   }
-  
   if (name.includes('flipkart')) {
     return `https://www.flipkart.com/search?q=${encodedTitle}`;
   }
-
-  if (name.includes('myntra')) {
-    return `https://www.myntra.com/${encodedTitle.replace(/%20/g, '-')}`;
-  }
-
-  if (name.includes('tatacliq') || name.includes('tata cliq') || name.includes('cliq')) {
-    return `https://www.tatacliq.com/search/?searchCategory=all&text=${encodedTitle}`;
-  }
-
-  if (name.includes('croma')) {
-    return `https://www.croma.com/searchB?q=${encodedTitle}`;
-  }
-
-  if (name.includes('titan')) {
-    return `https://www.titan.co.in/search?q=${encodedTitle}`;
-  }
-
-  if (name.includes('reliance') || name.includes('reliancedigital')) {
-    return `https://www.reliancedigital.in/search?q=${encodedTitle}`;
-  }
-
-  if (name.includes('ajio')) {
-    return `https://www.ajio.com/search/?text=${encodedTitle}`;
-  }
-
   if (name.includes('meesho')) {
     return `https://www.meesho.com/search?q=${encodedTitle}`;
   }
-
+  if (name.includes('myntra')) {
+    return `https://www.myntra.com/${encodedTitle.replace(/%20/g, '-')}`;
+  }
+  if (name.includes('tatacliq') || name.includes('tata cliq') || name.includes('cliq')) {
+    return `https://www.tatacliq.com/search/?searchCategory=all&text=${encodedTitle}`;
+  }
+  if (name.includes('croma')) {
+    return `https://www.croma.com/searchB?q=${encodedTitle}`;
+  }
+  if (name.includes('reliance') || name.includes('reliancedigital')) {
+    return `https://www.reliancedigital.in/search?q=${encodedTitle}`;
+  }
+  if (name.includes('blinkit')) {
+    return `https://blinkit.com/s/?q=${encodedTitle}`;
+  }
+  if (name.includes('zepto')) {
+    return `https://www.zeptonow.com/search?q=${encodedTitle}`;
+  }
+  if (name.includes('healthkart')) {
+    return `https://www.healthkart.com/search?q=${encodedTitle}`;
+  }
   if (name.includes('nykaa')) {
     return `https://www.nykaa.com/search/result/?q=${encodedTitle}`;
   }
-
+  if (name.includes('titan')) {
+    return `https://www.titan.co.in/search?q=${encodedTitle}`;
+  }
   if (name.includes('casio')) {
     return `https://www.casioindiashop.com/search.php?q=${encodedTitle}`;
   }
-
   if (name.includes('nike')) {
     return `https://www.nike.com/in/w?q=${encodedTitle}`;
   }
+  if (name.includes('apple')) {
+    return `https://www.apple.com/in/shop/buy-iphone`;
+  }
+  if (name.includes('samsung')) {
+    return `https://www.samsung.com/in/search/?searchvalue=${encodedTitle}`;
+  }
 
-  // If there's a Google Shopping link redirect, use it
   if (originalLink && originalLink.startsWith('http')) {
     return originalLink;
   }
 
-  // Final fallback: Google Shopping direct search
   return `https://www.google.com/search?tbm=shop&q=${encodedTitle}`;
 }
 
 /**
- * Ensure every product has multi-store price comparisons across distinct Indian platforms
- * (Guaranteed NO duplicate store names)
+ * Ensure every product has comprehensive multi-store comparison across 5-6 top Indian platforms:
+ * Amazon India, Flipkart, Meesho/Myntra, Croma/Reliance Digital, Blinkit/Zepto (Quick Commerce 10 min), and Official Brand Store
  */
 export function ensureMultiStoreComparison(product) {
   const title = product.title || '';
   const price = product.price || 1000;
   const stores = product.stores || [];
+  const text = `${product.category} ${title} ${product.brand}`.toLowerCase();
 
-  // Determine appropriate 3rd store based on category / brand
-  const text = `${product.category} ${title}`.toLowerCase();
-  let thirdStoreName = 'Tata CLiQ';
-  if (text.includes('underwear') || text.includes('shirt') || text.includes('pant') || text.includes('shoe') || text.includes('cloth')) {
-    thirdStoreName = 'Myntra';
-  } else if (text.includes('laptop') || text.includes('phone') || text.includes('headphone') || text.includes('tv') || text.includes('keyboard')) {
-    thirdStoreName = 'Croma';
-  } else if (text.includes('watch') || text.includes('titan')) {
-    thirdStoreName = 'Titan.co.in';
-  } else if (text.includes('protein') || text.includes('creatine') || text.includes('fitness')) {
-    thirdStoreName = 'HealthKart';
-  } else if (text.includes('skin') || text.includes('perfume') || text.includes('cosmetic')) {
-    thirdStoreName = 'Nykaa';
-  }
+  // Determine Category-Appropriate Store Set
+  const isSupplement = text.includes('protein') || text.includes('protin') || text.includes('whey') || text.includes('creatine') || text.includes('supplement');
+  const isTech = text.includes('laptop') || text.includes('phone') || text.includes('macbook') || text.includes('keyboard') || text.includes('headphone');
+  const isFashion = text.includes('underwear') || text.includes('shirt') || text.includes('pant') || text.includes('shoe') || text.includes('watch') || text.includes('cloth');
 
-  // If we already have 2+ DISTINCT stores with valid pricing, keep them and fix links
-  if (stores.length >= 2) {
-    const storeNames = new Set();
-    const uniqueStores = [];
-    for (const s of stores) {
-      const cleanName = s.name || 'Merchant';
-      if (!storeNames.has(cleanName)) {
-        storeNames.add(cleanName);
-        uniqueStores.push({
-          ...s,
-          link: buildStoreDirectLink(s.name, title, s.link)
-        });
-      }
+  const brandName = product.brand || 'Brand Official';
+
+  const multiStores = [
+    // 1. Amazon India (Lowest / Best)
+    {
+      name: 'Amazon India',
+      price: price,
+      isBest: true,
+      inStock: true,
+      delivery: 'Tomorrow, by 2 PM',
+      badge: 'Best Price',
+      returnDays: 7,
+      link: buildStoreDirectLink('Amazon India', title)
+    },
+    // 2. Flipkart
+    {
+      name: 'Flipkart',
+      price: Math.round(price * 1.03),
+      isBest: false,
+      inStock: true,
+      delivery: '2-3 Days',
+      badge: 'Assured',
+      returnDays: 7,
+      link: buildStoreDirectLink('Flipkart', title)
+    },
+    // 3. Fashion / Electronics / Value Store
+    {
+      name: isTech ? 'Croma' : (isFashion ? 'Myntra' : (isSupplement ? 'HealthKart' : 'Meesho')),
+      price: Math.round(price * 1.05),
+      isBest: false,
+      inStock: true,
+      delivery: isTech ? 'Same Day Store Pickup' : '3 Days',
+      badge: isTech ? 'Tata Assured' : 'Original',
+      returnDays: 14,
+      link: buildStoreDirectLink(isTech ? 'Croma' : (isFashion ? 'Myntra' : (isSupplement ? 'HealthKart' : 'Meesho')), title)
+    },
+    // 4. Quick Commerce (Blinkit / Zepto) 10-15 Min Delivery
+    {
+      name: isSupplement ? 'Blinkit' : (isTech ? 'Reliance Digital' : 'Zepto'),
+      price: Math.round(price * 1.06),
+      isBest: false,
+      inStock: true,
+      delivery: isSupplement || !isTech ? '⚡ 10–15 Mins' : 'Tomorrow',
+      badge: isSupplement || !isTech ? '⚡ Quick 10m' : 'Express',
+      returnDays: 7,
+      link: buildStoreDirectLink(isSupplement ? 'Blinkit' : (isTech ? 'Reliance Digital' : 'Zepto'), title)
+    },
+    // 5. Official Brand Store
+    {
+      name: `${brandName} Official`,
+      price: Math.round(price * 1.10),
+      isBest: false,
+      inStock: true,
+      delivery: '3-4 Days',
+      badge: 'Brand Direct',
+      returnDays: 14,
+      link: buildStoreDirectLink(brandName, title)
+    },
+    // 6. Meesho / Tata CLiQ Luxury
+    {
+      name: isFashion ? 'Tata CLiQ' : 'Meesho',
+      price: Math.round(price * 1.02),
+      isBest: false,
+      inStock: true,
+      delivery: '4-5 Days',
+      badge: 'Direct Sellers',
+      returnDays: 7,
+      link: buildStoreDirectLink(isFashion ? 'Tata CLiQ' : 'Meesho', title)
     }
-    if (uniqueStores.length >= 2) {
-      return uniqueStores;
-    }
-  }
+  ];
 
-  // Create 3 guaranteed distinct stores: Amazon India (Best), Flipkart, and Retailer/Specialist
-  const store1 = {
-    name: 'Amazon India',
-    price: price,
-    isBest: true,
-    inStock: true,
-    delivery: 'Tomorrow, by 2 PM',
-    returnDays: 7,
-    link: buildStoreDirectLink('Amazon India', title)
-  };
-
-  const store2 = {
-    name: 'Flipkart',
-    price: Math.round(price * 1.04),
-    isBest: false,
-    inStock: true,
-    delivery: '2-3 Days',
-    returnDays: 7,
-    link: buildStoreDirectLink('Flipkart', title)
-  };
-
-  const store3 = {
-    name: thirdStoreName,
-    price: Math.round(price * 1.07),
-    isBest: false,
-    inStock: true,
-    delivery: '3-4 Days',
-    returnDays: 14,
-    link: buildStoreDirectLink(thirdStoreName, title)
-  };
-
-  return [store1, store2, store3];
+  return multiStores;
 }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { TrendingDown, TrendingUp, Minus, Bell, Check, Sparkles, AlertCircle, BarChart2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-export default function PriceHistoryGraph({ priceHistory, currentPrice, productTitle }) {
+export default function PriceHistoryGraph({ priceHistory, currentPrice, productTitle, formatPrice = (p) => `₹${p.toLocaleString('en-IN')}` }) {
   const [alertSet, setAlertSet] = useState(false);
   const [alertTargetPrice, setAlertTargetPrice] = useState(Math.round(currentPrice * 0.95));
 
@@ -66,7 +66,7 @@ export default function PriceHistoryGraph({ priceHistory, currentPrice, productT
           ) : (
             <span className="bg-amber-500/15 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded-md flex items-center gap-1">
               <Minus className="w-3 h-3 text-amber-400" />
-              <span>Avg: ₹{avg.toLocaleString('en-IN')} ({priceDiffFromAvg > 0 ? `+${priceDiffFromAvg}%` : `${priceDiffFromAvg}%`})</span>
+              <span>Avg: {formatPrice(avg)} ({priceDiffFromAvg > 0 ? `+${priceDiffFromAvg}%` : `${priceDiffFromAvg}%`})</span>
             </span>
           )}
         </div>
@@ -109,14 +109,14 @@ export default function PriceHistoryGraph({ priceHistory, currentPrice, productT
                   r={isLast ? 4.5 : 3}
                   className={`${isLast ? 'fill-emerald-400 stroke-slate-950 stroke-2' : 'fill-indigo-400 stroke-slate-900 stroke-1'} hover:r-5 transition-all`}
                 />
-                {/* Price Label on hover / last */}
+                {/* Price Label */}
                 <text
                   x={cx}
                   y={cy - 8}
                   textAnchor="middle"
                   className={`text-[9px] font-mono font-bold ${isLast ? 'fill-emerald-300' : 'fill-slate-400'} select-none`}
                 >
-                  ₹{p.price >= 1000 ? `${(p.price / 1000).toFixed(1)}k` : p.price}
+                  {formatPrice(p.price)}
                 </text>
                 {/* Date Label on bottom */}
                 <text
@@ -144,7 +144,7 @@ export default function PriceHistoryGraph({ priceHistory, currentPrice, productT
             {priceHistory.priceDropPrediction || (
               isAtLowest 
                 ? "Price is at the lowest recorded range. Excellent time to buy." 
-                : `Historically lowest was ₹${lowest.toLocaleString('en-IN')}. Set alert below if not urgent.`
+                : `Historically lowest was ${formatPrice(lowest)}. Set alert below if not urgent.`
             )}
           </p>
         </div>
@@ -154,7 +154,7 @@ export default function PriceHistoryGraph({ priceHistory, currentPrice, productT
           {alertSet ? (
             <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-3 py-1.5 rounded-xl">
               <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Alert Set for ₹{alertTargetPrice.toLocaleString('en-IN')} ✓</span>
+              <span>Alert Set for {formatPrice(alertTargetPrice)} ✓</span>
             </div>
           ) : (
             <button

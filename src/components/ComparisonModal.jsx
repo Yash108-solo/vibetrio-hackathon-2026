@@ -2,7 +2,7 @@ import React from 'react';
 import { X, Award, Check, AlertTriangle, ExternalLink, ShieldCheck, Clock, Download } from 'lucide-react';
 import { exportElementToPDF } from '../utils/pdfExport';
 
-export default function ComparisonModal({ isOpen, onClose, products = [], category = 'laptop' }) {
+export default function ComparisonModal({ isOpen, onClose, products = [], category = 'laptop', formatPrice = (p) => `₹${p.toLocaleString('en-IN')}` }) {
   if (!isOpen || products.length === 0) return null;
 
   return (
@@ -90,8 +90,8 @@ export default function ComparisonModal({ isOpen, onClose, products = [], catego
               const bestStore = p.stores?.find(s => s.isBest) || p.stores?.[0] || { name: 'Direct', price: p.price };
               return (
                 <div key={p.id} className="p-3 bg-slate-900/60 rounded-xl text-center space-y-0.5">
-                  <div className="text-base font-black text-white font-mono">₹{p.price.toLocaleString('en-IN')}</div>
-                  {p.mrp && <div className="text-[11px] text-slate-500 line-through">MRP: ₹{p.mrp.toLocaleString('en-IN')}</div>}
+                  <div className="text-base font-black text-white font-mono">{formatPrice(p.price)}</div>
+                  {p.mrp && <div className="text-[11px] text-slate-500 line-through">MRP: {formatPrice(p.mrp)}</div>}
                   <span className="inline-block text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
                     Best on {bestStore.name}
                   </span>
@@ -106,7 +106,7 @@ export default function ComparisonModal({ isOpen, onClose, products = [], catego
             {products.map((p) => (
               <div key={p.id} className="p-3 bg-slate-900/60 rounded-xl text-center text-xs space-y-1">
                 <div className="font-semibold text-slate-200">
-                  Lowest: <span className="text-emerald-400 font-mono">₹{p.priceHistory?.lowest30Days?.toLocaleString('en-IN') || p.price}</span>
+                  Lowest: <span className="text-emerald-400 font-mono">{formatPrice(p.priceHistory?.lowest30Days || p.price)}</span>
                 </div>
                 <div className="text-[10px] text-slate-400 capitalize flex items-center justify-center gap-1">
                   <span>Trend:</span>
