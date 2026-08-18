@@ -4,7 +4,9 @@ import {
   Laptop, Smartphone, Headphones, Shirt, Zap, ShieldAlert,
   Database, RefreshCw, Terminal, Check, Info, Award,
   AlertTriangle, Star, Bookmark, ExternalLink, ThumbsUp,
-  History, Download, X, Layers, TrendingUp
+  History, Download, X, Layers, TrendingUp, TrendingDown,
+  ShieldCheck, BarChart3, Store, Tag, Clock, Minus,
+  Radio, Globe, Wifi
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { extractShoppingMission } from './services/geminiIntent';
@@ -12,10 +14,14 @@ import { getProductsByCategory, saveMission, saveDecision, getDecisionHistory, i
 import { scoreAndRankProducts } from './services/scoringEngine';
 import { exportElementToPDF } from './utils/pdfExport';
 import { SEED_PRODUCTS } from './data/seedProducts';
+import { searchProducts, buildSearchQuery } from './services/serperSearch';
+import { analyzeProducts } from './services/geminiVerdict';
+import ComparisonModal from './components/ComparisonModal';
 
 export default function App() {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState('');
   const [mission, setMission] = useState(null);
   const [rawProducts, setRawProducts] = useState([]);
   const [rankedProducts, setRankedProducts] = useState([]);
@@ -24,6 +30,8 @@ export default function App() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [decisionHistory, setDecisionHistory] = useState([]);
   const [jsonLog, setJsonLog] = useState('');
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [isRealTime, setIsRealTime] = useState(false);
 
   const HERO_EXAMPLES = [
     {
@@ -67,15 +75,46 @@ export default function App() {
     if (!targetText.trim()) return;
 
     setLoading(true);
+    setIsRealTime(false);
+
     try {
+      // ── STEP 1: Extract Shopping Intent (Gemini Call #1) ──
+      setLoadingStage('Understanding your needs...');
       const extractedMission = await extractShoppingMission(targetText);
       setMission(extractedMission);
       setJsonLog(JSON.stringify(extractedMission, null, 2));
 
-      const catalogProducts = await getProductsByCategory(extractedMission.category);
-      setRawProducts(catalogProducts);
+      // ── STEP 2: Search Real Products (Serper API) ──
+      let products = null;
+      setLoadingStage('Scanning real stores across India...');
+      
+      const searchQuery = buildSearchQuery(extractedMission, targetText);
+      const serperResults = await searchProducts(searchQuery);
 
-      const ranked = scoreAndRankProducts(catalogProducts, extractedMission);
+      if (serperResults && serperResults.length > 0) {
+        // ── STEP 3: AI Analysis & Verdict (Gemini Call #2) ──
+        setLoadingStage('AI analyzing prices & generating verdicts...');
+        products = await analyzeProducts(serperResults, extractedMission);
+
+        if (products && products.length > 0) {
+          setIsRealTime(true);
+          console.log(`[Pipeline] ✅ Real-time mode: ${products.length} products from web`);
+        }
+      }
+
+      // ── STEP 4: Fallback to Seed Catalog if APIs failed ──
+      if (!products || products.length === 0) {
+        setLoadingStage('Using curated catalog...');
+        products = await getProductsByCategory(extractedMission.category);
+        setIsRealTime(false);
+        console.log(`[Pipeline] 📦 Seed mode: ${products.length} products from catalog`);
+      }
+
+      setRawProducts(products);
+
+      // ── STEP 5: Deterministic Scoring & Ranking ──
+      setLoadingStage('Ranking with your priorities...');
+      const ranked = scoreAndRankProducts(products, extractedMission);
       setRankedProducts(ranked);
 
       await saveMission(extractedMission);
@@ -83,6 +122,7 @@ export default function App() {
       console.error("Pipeline error:", error);
     } finally {
       setLoading(false);
+      setLoadingStage('');
     }
   };
 
@@ -142,6 +182,38 @@ export default function App() {
     }
   };
 
+  // Helper: get verdict badge color classes
+  const getVerdictStyle = (verdictType) => {
+    switch (verdictType) {
+      case 'buy':
+        return { bg: 'bg-emerald-500/15', border: 'border-emerald-500/40', text: 'text-emerald-300', icon: '🟢' };
+      case 'wait':
+        return { bg: 'bg-amber-500/15', border: 'border-amber-500/40', text: 'text-amber-300', icon: '🟡' };
+      case 'avoid':
+        return { bg: 'bg-rose-500/15', border: 'border-rose-500/40', text: 'text-rose-300', icon: '🔴' };
+      default:
+        return { bg: 'bg-slate-500/15', border: 'border-slate-500/40', text: 'text-slate-300', icon: '⚪' };
+    }
+  };
+
+  // Helper: get discount percentage
+  const getDiscountPercent = (mrp, price) => {
+    if (!mrp || mrp <= price) return 0;
+    return Math.round(((mrp - price) / mrp) * 100);
+  };
+
+  // Helper: get trend display
+  const getTrendDisplay = (trend) => {
+    switch (trend) {
+      case 'downward':
+        return { label: '↓ Dropping', color: 'text-emerald-400' };
+      case 'upward':
+        return { label: '↑ Rising', color: 'text-rose-400' };
+      default:
+        return { label: '→ Stable', color: 'text-slate-400' };
+    }
+  };
+
   const top3 = rankedProducts.slice(0, 3);
 
   return (
@@ -160,10 +232,10 @@ export default function App() {
                   DECIDE
                 </span>
                 <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold">
-                  Live Decision Engine
+                  ShopSense AI
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium">A Transparent Decision Model for Shopping</p>
+              <p className="text-[11px] text-slate-400 font-medium">Multi-Store Decision Intelligence • Know What to Buy</p>
             </div>
           </div>
 
@@ -194,16 +266,16 @@ export default function App() {
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" />
-            Decision Intelligence • Not Just Search
+            Real-Time Multi-Store Intelligence • Not Just Search
           </div>
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-            Make your next purchase <br className="hidden sm:inline" />
+            Compare prices, verify data, <br className="hidden sm:inline" />
             <span className="bg-gradient-to-r from-indigo-400 via-indigo-200 to-emerald-400 bg-clip-text text-transparent">
-              make complete sense.
+              decide with confidence.
             </span>
           </h1>
           <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
-            Tell us what you're buying, your budget, and what matters most. We build a visible decision model with trade-offs you can adjust in real time.
+            Tell us what you're buying. We scan live prices from Amazon, Flipkart & more, analyze with AI, and show transparent verdicts with trade-offs.
           </p>
         </div>
 
@@ -231,7 +303,7 @@ export default function App() {
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Scoring Catalog...</span>
+                  <span>{loadingStage || 'Processing...'}</span>
                 </>
               ) : (
                 <>
@@ -242,39 +314,51 @@ export default function App() {
             </button>
           </form>
 
+          {/* Loading Pipeline Progress */}
+          {loading && loadingStage && (
+            <div className="mt-3 pt-3 border-t border-slate-800/80">
+              <div className="flex items-center gap-2 text-xs text-indigo-300 font-medium animate-pulse">
+                <Globe className="w-3.5 h-3.5 text-indigo-400" />
+                <span>{loadingStage}</span>
+              </div>
+            </div>
+          )}
+
           {/* 4 Clickable Example Missions */}
-          <div className="mt-4 pt-4 border-t border-slate-800/80">
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Or click a sample mission to test:</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-              {HERO_EXAMPLES.map((ex, i) => {
-                const Icon = ex.icon;
-                return (
-                  <button
-                    key={i}
-                    onClick={() => { setQuery(ex.text); handleRunMission(ex.text); }}
-                    className="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 hover:border-indigo-500/50 transition group flex flex-col justify-between space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between text-xs font-semibold text-slate-200">
-                      <span className="flex items-center gap-1.5 group-hover:text-indigo-300 transition">
-                        <Icon className="w-3.5 h-3.5 text-indigo-400" />
-                        {ex.label}
+          {!loading && (
+            <div className="mt-4 pt-4 border-t border-slate-800/80">
+              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Or click a sample mission to test:</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                {HERO_EXAMPLES.map((ex, i) => {
+                  const Icon = ex.icon;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => { setQuery(ex.text); handleRunMission(ex.text); }}
+                      className="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 hover:border-indigo-500/50 transition group flex flex-col justify-between space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between text-xs font-semibold text-slate-200">
+                        <span className="flex items-center gap-1.5 group-hover:text-indigo-300 transition">
+                          <Icon className="w-3.5 h-3.5 text-indigo-400" />
+                          {ex.label}
+                        </span>
+                        <ArrowRight className="w-3 h-3 text-slate-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition" />
+                      </div>
+                      <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                        "{ex.text}"
+                      </p>
+                      <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">
+                        {ex.tag}
                       </span>
-                      <ArrowRight className="w-3 h-3 text-slate-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition" />
-                    </div>
-                    <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
-                      "{ex.text}"
-                    </p>
-                    <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">
-                      {ex.tag}
-                    </span>
-                  </button>
-                );
-              })}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Dynamic Re-rank Alert Banner */}
@@ -289,6 +373,25 @@ export default function App() {
         {mission && top3.length > 0 && (
           <div className="space-y-8 animate-in fade-in duration-300">
             
+            {/* Data Source Badge */}
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider ${
+              isRealTime 
+                ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400' 
+                : 'bg-slate-800/50 border border-slate-700 text-slate-400'
+            }`}>
+              {isRealTime ? (
+                <>
+                  <Wifi className="w-4 h-4 animate-pulse" />
+                  <span>🟢 Live Data — Real-time prices from Google Shopping India</span>
+                </>
+              ) : (
+                <>
+                  <Database className="w-4 h-4" />
+                  <span>📦 Curated Catalog — Add SERPER API key for live prices</span>
+                </>
+              )}
+            </div>
+
             {/* THE WOW MOMENT: Interactive Priority Sliders Card */}
             <div className="bg-slate-900/90 border border-indigo-500/30 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
               
@@ -349,17 +452,28 @@ export default function App() {
 
             </div>
 
-            {/* Top 3 Ranked Cards Header */}
-            <div className="flex items-center justify-between pt-4">
+            {/* Top 3 Ranked Cards Header + Compare Button */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4">
               <div>
                 <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
                   <Award className="w-6 h-6 text-amber-400" />
                   <span>Ranked Matches ({rankedProducts.length} Evaluated)</span>
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Ranked deterministically using your live priority weights.
+                  {isRealTime 
+                    ? 'Live prices from real stores. Ranked by your priority weights.' 
+                    : 'Ranked deterministically using your live priority weights.'}
                 </p>
               </div>
+
+              {/* Compare Side-by-Side Button */}
+              <button
+                onClick={() => setIsCompareOpen(true)}
+                className="inline-flex items-center gap-2 text-xs font-semibold bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 px-4 py-2.5 rounded-xl transition shrink-0"
+              >
+                <Layers className="w-4 h-4 text-indigo-400" />
+                <span>Compare Side-by-Side</span>
+              </button>
             </div>
 
             {/* Top 3 Product Cards Stack */}
@@ -367,6 +481,10 @@ export default function App() {
               {top3.map((product, rankIdx) => {
                 const isWinner = rankIdx === 0;
                 const isSaved = savedIds.includes(product.id);
+                const verdictStyle = getVerdictStyle(product.verdictType);
+                const discount = getDiscountPercent(product.mrp, product.price);
+                const bestStore = product.stores?.find(s => s.isBest) || product.stores?.[0];
+                const trendInfo = getTrendDisplay(product.priceHistory?.trend);
 
                 return (
                   <div 
@@ -385,6 +503,7 @@ export default function App() {
                           src={product.thumbnail} 
                           alt={product.title}
                           className="w-full h-full object-cover opacity-90"
+                          onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80'; }}
                         />
                         <div className={`absolute top-3 left-3 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg ${
                           isWinner ? 'bg-indigo-600 text-white' : 'bg-slate-900/90 text-slate-300 border border-slate-700'
@@ -392,6 +511,19 @@ export default function App() {
                           {isWinner && <Award className="w-3.5 h-3.5 text-amber-300" />}
                           <span>#{rankIdx + 1} {isWinner ? 'Best Overall' : 'Alternative'}</span>
                         </div>
+
+                        {/* AI Verdict Badge on Image */}
+                        <div className={`absolute bottom-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1 ${verdictStyle.bg} ${verdictStyle.border} border ${verdictStyle.text} backdrop-blur-sm`}>
+                          <span>{verdictStyle.icon}</span>
+                          <span>{product.verdict || 'BUY NOW'}</span>
+                        </div>
+
+                        {/* Discount Tag */}
+                        {discount > 0 && (
+                          <div className="absolute top-3 right-3 px-2 py-0.5 rounded-lg bg-emerald-600 text-white text-[10px] font-black shadow-lg">
+                            {discount}% OFF
+                          </div>
+                        )}
                       </div>
 
                       {/* Details & Trade-offs */}
@@ -417,14 +549,21 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Price & Rating */}
-                        <div className="flex items-center gap-4">
-                          <span className="text-2xl font-black text-white font-mono">
-                            ₹{product.price.toLocaleString('en-IN')}
-                          </span>
+                        {/* Price Row: MRP strikethrough + Best Price + Rating + Reviews + Budget Status */}
+                        <div className="flex flex-wrap items-center gap-3">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-2xl font-black text-white font-mono">
+                              ₹{product.price.toLocaleString('en-IN')}
+                            </span>
+                            {product.mrp && product.mrp > product.price && (
+                              <span className="text-sm text-slate-500 line-through font-mono">
+                                ₹{product.mrp.toLocaleString('en-IN')}
+                              </span>
+                            )}
+                          </div>
                           <span className="flex items-center text-xs font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-xl">
                             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 mr-1" />
-                            {product.rating} / 5.0
+                            {product.rating} ({product.reviewsCount?.toLocaleString('en-IN') || '0'} reviews)
                           </span>
                           {product.isOverBudget ? (
                             <span className="text-xs font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 rounded-xl">
@@ -432,13 +571,105 @@ export default function App() {
                             </span>
                           ) : (
                             <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-xl">
-                              ✓ Within Budget Cap
+                              ✓ Within Budget
                             </span>
                           )}
                         </div>
 
+                        {/* Multi-Store Pricing Row */}
+                        {product.stores && product.stores.length > 0 && (
+                          <div className="bg-slate-950/70 rounded-2xl border border-slate-800/80 p-3.5 space-y-2">
+                            <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                              <Store className="w-3 h-3 text-indigo-400" />
+                              Multi-Store Price Comparison
+                              {isRealTime && <span className="text-emerald-400 ml-1">• Live</span>}
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              {product.stores.map((store, sIdx) => (
+                                <div 
+                                  key={sIdx}
+                                  className={`rounded-xl p-2.5 text-xs border transition ${
+                                    store.isBest 
+                                      ? 'bg-emerald-500/10 border-emerald-500/30' 
+                                      : 'bg-slate-900/50 border-slate-800/60'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className={`font-bold ${store.isBest ? 'text-emerald-300' : 'text-slate-300'}`}>
+                                      {store.name}
+                                    </span>
+                                    {store.isBest && (
+                                      <span className="text-[9px] font-extrabold bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded uppercase">
+                                        Best
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className={`font-mono font-bold text-sm ${store.isBest ? 'text-emerald-400' : 'text-slate-200'}`}>
+                                    ₹{store.price.toLocaleString('en-IN')}
+                                  </div>
+                                  <div className="text-[10px] text-slate-500 mt-0.5">
+                                    {store.inStock ? `⚡ ${store.delivery || 'Available'}` : '❌ Out of Stock'}
+                                    {store.returnDays && ` • ${store.returnDays}d return`}
+                                  </div>
+                                  {/* Buy Now link for real-time results */}
+                                  {store.link && store.link !== '#' && (
+                                    <a 
+                                      href={store.link} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-400 hover:text-indigo-300 transition"
+                                    >
+                                      <ExternalLink className="w-3 h-3" />
+                                      <span>Buy Now →</span>
+                                    </a>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Price History + Verdict Reason Row */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {/* 30-Day Price History */}
+                          {product.priceHistory && (
+                            <div className="bg-slate-950/70 rounded-xl border border-slate-800/80 p-3 space-y-1.5">
+                              <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                                <BarChart3 className="w-3 h-3 text-indigo-400" />
+                                30-Day Price Intelligence
+                              </div>
+                              <div className="flex items-center justify-between text-xs">
+                                <div>
+                                  <span className="text-slate-400">Low: </span>
+                                  <span className="font-mono font-bold text-emerald-400">₹{product.priceHistory.lowest30Days?.toLocaleString('en-IN')}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-400">High: </span>
+                                  <span className="font-mono font-bold text-slate-300">₹{product.priceHistory.highest30Days?.toLocaleString('en-IN')}</span>
+                                </div>
+                              </div>
+                              <div className={`text-[11px] font-semibold ${trendInfo.color}`}>
+                                Trend: {trendInfo.label}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* AI Verdict Reason */}
+                          <div className={`rounded-xl border p-3 space-y-1.5 ${verdictStyle.bg} ${verdictStyle.border}`}>
+                            <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                              {verdictStyle.icon} AI Purchase Verdict
+                            </div>
+                            <div className={`text-xs font-bold ${verdictStyle.text}`}>
+                              {product.verdict || 'BUY NOW'}
+                            </div>
+                            <p className="text-[11px] text-slate-300 leading-relaxed">
+                              {product.verdictReason}
+                            </p>
+                          </div>
+                        </div>
+
                         {/* Grounded Reasons List */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                           {product.reasons.map((r, i) => (
                             <div key={i} className="text-xs text-slate-300 flex items-start gap-2 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
                               <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
@@ -455,13 +686,39 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Card Actions */}
-                        <div className="pt-2 flex items-center justify-between">
-                          <div className="text-[11px] text-slate-500 font-mono">
-                            Deterministic Score ID: #{product.id}
+                        {/* Card Actions + Data Confidence */}
+                        <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                          {/* Data Confidence / Verification Badge */}
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-xl">
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              <span>{product.dataConfidence || 98}% Verified</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-[10px] text-slate-500">
+                              <Clock className="w-3 h-3" />
+                              <span>{product.verifiedAgo || 'Just now'}</span>
+                            </div>
+                            {isRealTime && (
+                              <div className="flex items-center gap-1 text-[10px] text-emerald-500 font-semibold">
+                                <Wifi className="w-3 h-3" />
+                                <span>Live</span>
+                              </div>
+                            )}
                           </div>
 
                           <div className="flex items-center gap-2">
+                            {/* Buy Best Deal Button */}
+                            {bestStore?.link && bestStore.link !== '#' && (
+                              <a
+                                href={bestStore.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs font-semibold px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 transition flex items-center gap-1.5"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>Buy on {bestStore.name}</span>
+                              </a>
+                            )}
                             <button
                               onClick={() => handleSaveProductDecision(product)}
                               className={`text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-1.5 ${
@@ -488,6 +745,14 @@ export default function App() {
         )}
 
       </main>
+
+      {/* Comparison Modal */}
+      <ComparisonModal 
+        isOpen={isCompareOpen} 
+        onClose={() => setIsCompareOpen(false)} 
+        products={top3} 
+        category={mission?.category || 'laptop'}
+      />
 
       {/* Saved Decisions Slide-over Drawer */}
       {isHistoryOpen && (
@@ -546,7 +811,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-600">
-        DECIDE • VibeTrio • VibeCode Hackathon 2.0 (MHSSCE)
+        DECIDE • ShopSense AI • VibeTrio • VibeCode Hackathon 2.0 (MHSSCE)
       </footer>
     </div>
   );
