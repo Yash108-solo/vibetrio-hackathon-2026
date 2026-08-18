@@ -1,11 +1,12 @@
 /**
  * DECIDE - Gemini AI Product Verdict & BuyHatke-Style Price History Engine
- * Analyzes real Google Shopping results for ANY product category.
+ * Analyzes real Google Shopping results for ANY product category with strict image preservation.
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getGeminiApiKey } from './geminiIntent';
 import { ensureMultiStoreComparison, buildStoreDirectLink } from '../utils/storeLinks';
+import { getProductImage } from '../utils/productImages';
 
 /**
  * Analyze raw shopping results with Gemini and return structured product data with BuyHatke price intelligence
@@ -34,8 +35,9 @@ export async function analyzeProducts(shoppingResults, mission) {
     }
   });
 
-  // Clean subset of Serper results
-  const cleanResults = shoppingResults.slice(0, 16).map(r => ({
+  // Clean subset of Serper results with original index
+  const cleanResults = shoppingResults.slice(0, 16).map((r, i) => ({
+    resultIndex: i,
     title: r.title,
     price: r.price,
     source: r.source,
@@ -59,8 +61,8 @@ Key Priorities: ${(mission.priorities || []).map(p => `${p.label} (${Math.round(
 ${JSON.stringify(cleanResults, null, 2)}
 
 === YOUR TASK ===
-1. Select the TOP 3-5 BEST DISTINCT products that closely match what the user is looking for (e.g. if they asked for Titan Watches, ONLY return Titan Watches; if they asked for Nike shoes, ONLY return Nike shoes).
-2. For each product, extract multi-marketplace pricing (Amazon India, Flipkart, Tata CLiQ, Croma, Myntra, Brand Store). Include the exact link from results or deep link name.
+1. Select the TOP 3-5 BEST DISTINCT products that closely match what the user is looking for (e.g. if they asked for underwear, ONLY return underwear; if they asked for Titan Watches, ONLY return Titan Watches; if they asked for Nike shoes, ONLY return Nike shoes).
+2. For each product, match its exact "resultIndex" from the raw shopping results so we preserve its real image and link.
 3. Generate BuyHatke-style 30-to-90 day price intelligence:
    - "lowest30Days": lowest price in the last 60 days
    - "highest30Days": peak price
@@ -79,23 +81,23 @@ Return a JSON array of product objects:
 [
   {
     "id": 1001,
+    "resultIndex": 0,
     "title": "<exact product name with model/variant>",
-    "brand": "<brand name, e.g. Titan, Casio, Apple>",
+    "brand": "<brand name, e.g. Jockey, Titan, Nike, Apple>",
     "category": "${mission.category}",
-    "price": <LOWEST current integer price in INR, e.g. 4195>,
-    "mrp": <MRP / list price integer, e.g. 5495>,
+    "price": <LOWEST current integer price in INR, e.g. 449>,
+    "mrp": <MRP / list price integer, e.g. 599>,
     "rating": <float, e.g. 4.4>,
     "reviewsCount": <integer review count>,
-    "thumbnail": "<imageUrl from results>",
     "stores": [
       {
-        "name": "<e.g. Amazon India, Flipkart, Tata CLiQ, Titan.co.in, Myntra>",
+        "name": "<e.g. Amazon India, Flipkart, Myntra, Brand Store>",
         "price": <integer price>,
         "inStock": true,
         "delivery": "<e.g. Tomorrow, 2 PM | 2-3 Days>",
         "returnDays": 7,
         "isBest": true,
-        "link": "<full product url from raw results or store url>"
+        "link": "<store url>"
       }
     ],
     "priceHistory": {
@@ -106,11 +108,11 @@ Return a JSON array of product objects:
       "priceDropChance": <integer 10-90>,
       "priceDropPrediction": "<BuyHatke-style price drop forecast>",
       "historyPoints": [
-        { "date": "15 Jul", "price": 5200 },
-        { "date": "28 Jul", price: 4800 },
-        { "date": "06 Aug", "price": 4495 },
-        { "date": "14 Aug", "price": 4350 },
-        { "date": "Today", "price": 4195 }
+        { "date": "15 Jul", "price": 599 },
+        { "date": "28 Jul", "price": 549 },
+        { "date": "06 Aug", "price": 499 },
+        { "date": "14 Aug", "price": 469 },
+        { "date": "Today", "price": 449 }
       ]
     },
     "verdict": "<BUY NOW|WAIT FOR SALE|DON'T BUY>",
@@ -130,9 +132,8 @@ Return a JSON array of product objects:
 
 === CRITICAL RULES ===
 - Only return products that MATCH the user's requested item: "${mission.searchTerm}".
-- All prices MUST be numbers (e.g. 4195, NOT "₹4,195")
-- Ensure at least 1 valid store link for each product
-- Make priceHistory graph data realistic and visually insightful`;
+- All prices MUST be numbers (e.g. 449, NOT "₹449")
+- Set "resultIndex" to match the item from the raw results list so its image is preserved`;
 
   try {
     console.log('[GeminiVerdict] Analyzing live shopping results with BuyHatke intelligence...');
@@ -140,9 +141,9 @@ Return a JSON array of product objects:
     const text = result.response.text();
     let products = JSON.parse(text);
 
-    products = products.map((p, idx) => sanitizeProduct(p, idx, mission));
+    products = products.map((p, idx) => sanitizeProduct(p, idx, mission, cleanResults));
 
-    console.log(`[GeminiVerdict] Successfully analyzed ${products.length} products with BuyHatke intelligence.`);
+    console.log(`[GeminiVerdict] Successfully analyzed ${products.length} products with preserved images.`);
     return products;
   } catch (error) {
     console.error('[GeminiVerdict] Analysis failed:', error.message);
@@ -151,15 +152,32 @@ Return a JSON array of product objects:
 }
 
 /**
- * Sanitize product data ensuring multi-store comparison and direct deep-links
+ * Sanitize product data ensuring real image preservation, multi-store comparison and direct deep-links
  */
-function sanitizeProduct(p, idx, mission) {
+function sanitizeProduct(p, idx, mission, rawResults = []) {
   const price = extractNumericPrice(p.price) || 1000;
   const mrp = extractNumericPrice(p.mrp) || Math.round(price * 1.25);
 
   const lowest = extractNumericPrice(p.priceHistory?.lowest30Days) || Math.round(price * 0.93);
   const highest = extractNumericPrice(p.priceHistory?.highest30Days) || Math.round(price * 1.18);
   const avg = extractNumericPrice(p.priceHistory?.averagePrice) || Math.round((lowest + highest) / 2);
+
+  // Preserve the REAL image from Google Shopping results
+  let realImage = '';
+  if (typeof p.resultIndex === 'number' && rawResults[p.resultIndex]) {
+    realImage = rawResults[p.resultIndex].imageUrl;
+  }
+  if (!realImage && rawResults[idx]) {
+    realImage = rawResults[idx].imageUrl;
+  }
+
+  // Fallback to Category-accurate photography
+  const finalThumbnail = getProductImage(
+    mission?.category || p.category || '',
+    p.title || mission?.searchTerm || '',
+    realImage || p.thumbnail,
+    idx
+  );
 
   // Generate fallback history points if missing
   const defaultHistoryPoints = [
@@ -180,7 +198,7 @@ function sanitizeProduct(p, idx, mission) {
     rating: Number(p.rating) || 4.3,
     reviewsCount: Number(p.reviewsCount) || 320,
     dataConfidence: Number(p.dataConfidence) || 97,
-    thumbnail: p.thumbnail || p.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80',
+    thumbnail: finalThumbnail,
     stores: (p.stores && p.stores.length > 0) ? p.stores.map(s => ({
       ...s,
       price: extractNumericPrice(s.price) || price,

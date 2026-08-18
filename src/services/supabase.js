@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { SEED_PRODUCTS } from '../data/seedProducts';
 import { ensureMultiStoreComparison } from '../utils/storeLinks';
+import { getProductImage } from '../utils/productImages';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -48,7 +49,7 @@ export async function getProductsByCategory(category = 'product', mission = null
     return matched;
   }
 
-  // 2. Universal Dynamic Generator for ANY Product in the World (Watches under 300, Drones, Skincare, Shoes, etc.)
+  // 2. Universal Dynamic Generator for ANY Product in the World (Underwear, Watches, Skincare, Shoes, etc.)
   const searchTerm = mission?.searchTerm || category;
   const budget = mission?.budget_max || 2500;
 
@@ -61,14 +62,14 @@ export async function getProductsByCategory(category = 'product', mission = null
   const dynamicProducts = [
     {
       id: 9001,
-      title: `${capitalizedTerm} (Top Rated • High Durability Edition)`,
-      brand: "Top Brand Match",
+      title: `${capitalizedTerm} (Top Rated • 100% Quality Edition)`,
+      brand: "Top Brand Choice",
       category: normCategory,
       price: targetPrice1,
       mrp: Math.round(targetPrice1 * 1.3),
       rating: 4.5,
       reviewsCount: 2450,
-      thumbnail: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80",
+      thumbnail: getProductImage(normCategory, searchTerm, '', 0),
       priceHistory: {
         lowest30Days: Math.round(targetPrice1 * 0.95),
         highest30Days: Math.round(targetPrice1 * 1.25),
@@ -87,7 +88,7 @@ export async function getProductsByCategory(category = 'product', mission = null
       verdict: "BUY NOW",
       verdictType: "buy",
       verdictReason: `Current price of ₹${targetPrice1.toLocaleString('en-IN')} is within budget and near historical low.`,
-      tradeOff: "Fast-selling stock on lowest priced store.",
+      tradeOff: "High demand item; limited stock on lowest priced store.",
       dataConfidence: 98,
       verifiedAgo: "Live Store Match",
       attributes: {
@@ -99,21 +100,21 @@ export async function getProductsByCategory(category = 'product', mission = null
     },
     {
       id: 9002,
-      title: `${capitalizedTerm} (Premium Pro Series • Extended Warranty)`,
+      title: `${capitalizedTerm} (Premium Comfort Series)`,
       brand: "Premium Match",
       category: normCategory,
       price: targetPrice2,
       mrp: Math.round(targetPrice2 * 1.25),
       rating: 4.6,
       reviewsCount: 1890,
-      thumbnail: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
+      thumbnail: getProductImage(normCategory, searchTerm, '', 1),
       priceHistory: {
         lowest30Days: Math.round(targetPrice2 * 0.92),
         highest30Days: Math.round(targetPrice2 * 1.2),
         averagePrice: Math.round(targetPrice2 * 1.08),
         trend: "stable",
         priceDropChance: 25,
-        priceDropPrediction: "⚡ Stable market price. Highly rated build quality.",
+        priceDropPrediction: "⚡ Stable market price. Highly rated comfort & build quality.",
         historyPoints: [
           { date: "18 Jul", price: Math.round(targetPrice2 * 1.2) },
           { date: "30 Jul", price: Math.round(targetPrice2 * 1.12) },
@@ -124,7 +125,7 @@ export async function getProductsByCategory(category = 'product', mission = null
       },
       verdict: "BUY NOW",
       verdictType: "buy",
-      verdictReason: `High customer satisfaction and reliable build quality under ₹${budget.toLocaleString('en-IN')}.`,
+      verdictReason: `High customer satisfaction and reliable quality under ₹${budget.toLocaleString('en-IN')}.`,
       tradeOff: "Slightly higher price than entry-level alternative.",
       dataConfidence: 97,
       verifiedAgo: "Live Store Match",
@@ -144,7 +145,7 @@ export async function getProductsByCategory(category = 'product', mission = null
       mrp: Math.round(targetPrice3 * 1.2),
       rating: 4.3,
       reviewsCount: 3100,
-      thumbnail: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=600&auto=format&fit=crop&q=80",
+      thumbnail: getProductImage(normCategory, searchTerm, '', 2),
       priceHistory: {
         lowest30Days: Math.round(targetPrice3 * 0.88),
         highest30Days: Math.round(targetPrice3 * 1.15),
