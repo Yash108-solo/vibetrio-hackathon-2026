@@ -31,7 +31,7 @@
               DECIDE
             </span>
             <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold">
-              Live Decision Model
+              Live Decision Engine
             </span>
           </div>
           <p class="text-[11px] text-slate-400 font-medium">Universal Multi-Store Price Comparison & BuyHatke Intelligence</p>
@@ -63,7 +63,7 @@
         </span>
       </h1>
       <p class="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
-        Search for clothing, underwear, electronics, footwear, watches, cosmetics & more. We compare live prices and track BuyHatke historical curves.
+        Protein powder, underwear, watches, laptops, shoes & more. We compare live prices and track BuyHatke historical curves.
       </p>
     </div>
 
@@ -75,7 +75,7 @@
           <input
             id="query-input"
             type="text"
-            placeholder="e.g. underwear under 500, titan watch under 4500, protein powder under 1500..."
+            placeholder="e.g. protin powder under 1500, underwear under 500, titan watch under 4500..."
             class="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-12 pr-4 py-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
           />
         </div>
@@ -102,6 +102,10 @@
           <span>Or click a sample mission:</span>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <button onclick="setQuery('protein powder under 1500')" class="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition flex flex-col justify-between space-y-1.5">
+            <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5"><i data-lucide="zap" class="w-3.5 h-3.5 text-indigo-400"></i> Whey Protein</span>
+            <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">Fitness • Under ₹1.5k</span>
+          </button>
           <button onclick="setQuery('underwear under 500')" class="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition flex flex-col justify-between space-y-1.5">
             <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5"><i data-lucide="shirt" class="w-3.5 h-3.5 text-indigo-400"></i> Cotton Innerwear</span>
             <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">Apparel • Under ₹500</span>
@@ -110,13 +114,9 @@
             <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5"><i data-lucide="watch" class="w-3.5 h-3.5 text-indigo-400"></i> Titan Watches</span>
             <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">Watch • Under ₹4.5k</span>
           </button>
-          <button onclick="setQuery('I need a laptop under ₹70,000 for coding, college and occasional gaming. Battery matters more than looks.')" class="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition flex flex-col justify-between space-y-1.5">
-            <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5"><i data-lucide="laptop" class="w-3.5 h-3.5 text-indigo-400"></i> CS Student Laptop</span>
+          <button onclick="setQuery('I need a laptop under ₹70,000 for coding, college and occasional gaming.')" class="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition flex flex-col justify-between space-y-1.5">
+            <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5"><i data-lucide="laptop" class="w-3.5 h-3.5 text-indigo-400"></i> Coding Laptop</span>
             <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">Laptop • Under ₹70k</span>
-          </button>
-          <button onclick="setQuery('I need lightweight breathable running shoes under ₹3,500 with durable sole cushioning.')" class="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition flex flex-col justify-between space-y-1.5">
-            <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5"><i data-lucide="footprints" class="w-3.5 h-3.5 text-indigo-400"></i> Running Shoes</span>
-            <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">Shoes • Under ₹3.5k</span>
           </button>
         </div>
       </div>
@@ -155,7 +155,7 @@
             </div>
             <div class="bg-slate-950 px-4 py-2 rounded-2xl border border-slate-800 text-right">
               <div class="text-[10px] text-slate-500 uppercase font-semibold">Budget Cap</div>
-              <div id="mission-budget" class="text-sm font-bold text-emerald-400 font-mono">₹500 ✓</div>
+              <div id="mission-budget" class="text-sm font-bold text-emerald-400 font-mono">₹1,500 ✓</div>
             </div>
           </div>
         </div>
@@ -251,7 +251,15 @@
       }
       const text = `${category} ${title}`.toLowerCase();
 
-      if (text.includes('underwear') || text.includes('boxer') || text.includes('trunk') || text.includes('brief') || text.includes('innerwear') || text.includes('vest')) {
+      if (text.includes('protein') || text.includes('protin') || text.includes('proten') || text.includes('whey') || text.includes('creatine') || text.includes('nutrition') || text.includes('supplement')) {
+        const imgs = [
+          "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=600&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80"
+        ];
+        return imgs[index % imgs.length];
+      }
+      if (text.includes('underwear') || text.includes('undrwear') || text.includes('boxer') || text.includes('trunk') || text.includes('brief') || text.includes('innerwear') || text.includes('vest') || text.includes('chaddi')) {
         const imgs = [
           "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600&auto=format&fit=crop&q=80",
           "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=600&auto=format&fit=crop&q=80",
@@ -259,7 +267,7 @@
         ];
         return imgs[index % imgs.length];
       }
-      if (text.includes('watch') || text.includes('timepiece') || text.includes('smartwatch')) {
+      if (text.includes('watch') || text.includes('watc') || text.includes('titan') || text.includes('casio') || text.includes('smartwatch')) {
         const imgs = [
           "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=600&auto=format&fit=crop&q=80",
           "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&auto=format&fit=crop&q=80",
@@ -267,7 +275,7 @@
         ];
         return imgs[index % imgs.length];
       }
-      if (text.includes('shoe') || text.includes('sneaker') || text.includes('boot') || text.includes('footwear')) {
+      if (text.includes('shoe') || text.includes('shos') || text.includes('sneaker') || text.includes('snekers') || text.includes('boot') || text.includes('footwear') || text.includes('nike')) {
         const imgs = [
           "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80",
           "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&auto=format&fit=crop&q=80"
@@ -275,7 +283,7 @@
         return imgs[index % imgs.length];
       }
       if (text.includes('laptop') || text.includes('macbook') || text.includes('computer')) {
-        return "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600&auto=format&fit=crop&q=80";
+        return "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&auto=format&fit=crop&q=80";
       }
       if (text.includes('phone') || text.includes('mobile')) {
         return "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&auto=format&fit=crop&q=80";
@@ -283,13 +291,7 @@
       if (text.includes('headphone') || text.includes('audio') || text.includes('earbud')) {
         return "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80";
       }
-      if (text.includes('perfume') || text.includes('fragrance')) {
-        return "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=600&auto=format&fit=crop&q=80";
-      }
-      if (text.includes('protein') || text.includes('supplement') || text.includes('gym')) {
-        return "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=600&auto=format&fit=crop&q=80";
-      }
-      return "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80";
+      return "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80";
     }
 
     // Direct Store Link Generator
@@ -306,11 +308,7 @@
       if (name.includes('tatacliq') || name.includes('cliq')) return `https://www.tatacliq.com/search/?searchCategory=all&text=${title}`;
       if (name.includes('croma')) return `https://www.croma.com/searchB?q=${title}`;
       if (name.includes('titan')) return `https://www.titan.co.in/search?q=${title}`;
-      if (name.includes('reliance')) return `https://www.reliancedigital.in/search?q=${title}`;
-      if (name.includes('ajio')) return `https://www.ajio.com/search/?text=${title}`;
-      if (name.includes('meesho')) return `https://www.meesho.com/search?q=${title}`;
-      if (name.includes('casio')) return `https://www.casioindiashop.com/search.php?q=${title}`;
-      if (name.includes('nike')) return `https://www.nike.com/in/w?q=${title}`;
+      if (name.includes('healthkart')) return `https://www.healthkart.com/search?q=${title}`;
       if (originalLink && originalLink.startsWith('http')) return originalLink;
       return `https://www.google.com/search?tbm=shop&q=${title}`;
     }
@@ -394,7 +392,7 @@
         const val = parseInt(fullNum[0].replace(/,/g, ''), 10);
         if (val >= 50) return val;
       }
-      return 500;
+      return 1500;
     }
 
     // Universal Intent Extraction for ANY Category
@@ -406,7 +404,15 @@
       let category = 'product';
       let priorities = [];
 
-      if (q.includes('underwear') || q.includes('boxer') || q.includes('trunk') || q.includes('brief') || q.includes('innerwear')) {
+      if (q.includes('protein') || q.includes('protin') || q.includes('whey') || q.includes('creatine')) {
+        category = 'protein';
+        priorities = [
+          { attribute: 'protein_content', label: 'Protein Purity & Labdoor Test', weight: 0.35 },
+          { attribute: 'digestibility', label: 'Digestibility & Enzymes', weight: 0.30 },
+          { attribute: 'flavor', label: 'Taste & Mixability', weight: 0.20 },
+          { attribute: 'value', label: 'Cost Per Scoop', weight: 0.15 }
+        ];
+      } else if (q.includes('underwear') || q.includes('undrwear') || q.includes('boxer') || q.includes('trunk') || q.includes('brief') || q.includes('innerwear')) {
         category = 'underwear';
         priorities = [
           { attribute: 'fabric', label: 'Cotton Softness & Breathability', weight: 0.35 },
@@ -414,7 +420,7 @@
           { attribute: 'elastic', label: 'Waistband Elastic Durability', weight: 0.15 },
           { attribute: 'fit', label: 'Snug Fit & Shape Retention', weight: 0.15 }
         ];
-      } else if (q.includes('watch')) {
+      } else if (q.includes('watch') || q.includes('watc') || q.includes('titan')) {
         category = 'watch';
         priorities = [
           { attribute: 'build_quality', label: 'Build & Dial Glass', weight: 0.30 },
@@ -422,7 +428,7 @@
           { attribute: 'water_resistance', label: 'Water Resistance', weight: 0.20 },
           { attribute: 'battery_movement', label: 'Movement / Battery', weight: 0.20 }
         ];
-      } else if (q.includes('shoe') || q.includes('sneaker')) {
+      } else if (q.includes('shoe') || q.includes('shos') || q.includes('sneaker')) {
         category = 'shoes';
         priorities = [
           { attribute: 'comfort', label: 'Cushioning & Comfort', weight: 0.35 },
@@ -528,91 +534,72 @@
       `;
     }
 
-    // Dynamic Generator for Zero-Key Mode
+    // Dynamic Generator for Zero-Key Mode with Real Market Brands
     function generateDynamicProducts(mission) {
-      const term = mission.searchTerm;
-      const budget = mission.budget_max;
-      const capTerm = term.charAt(0).toUpperCase() + term.slice(1);
+      const text = `${mission.searchTerm} ${mission.category}`.toLowerCase();
+      const b = mission.budget_max;
 
-      const p1 = Math.max(99, Math.round(budget * 0.88));
-      const p2 = Math.max(99, Math.round(budget * 0.95));
-      const p3 = Math.max(120, Math.round(budget * 1.08));
+      let items = [];
 
-      return [
-        {
-          id: 9001,
-          title: `${capTerm} (Top Rated • 100% Super-Combed Quality Edition)`,
-          brand: "Top Brand Choice",
+      if (text.includes('protein') || text.includes('protin') || text.includes('whey') || text.includes('creatine')) {
+        items = [
+          { title: "MuscleBlaze Biozyme Performance Whey (1kg, Chocolate)", brand: "MuscleBlaze", price: Math.min(b, 1349), rating: 4.6, reviews: 14200 },
+          { title: "Optimum Nutrition (ON) Gold Standard 100% Whey Protein (1kg)", brand: "Optimum Nutrition", price: Math.min(Math.round(b * 1.05), 1899), rating: 4.7, reviews: 22000 },
+          { title: "As-It-Is Nutrition Whey Protein Concentrate 80% Unflavoured (1kg)", brand: "AS-IT-IS", price: Math.min(Math.round(b * 0.85), 1199), rating: 4.4, reviews: 9800 }
+        ];
+      } else if (text.includes('underwear') || text.includes('undrwear') || text.includes('trunk') || text.includes('boxer') || text.includes('innerwear')) {
+        items = [
+          { title: "Jockey Men 100% Super Combed Cotton Trunk (Pack of 2)", brand: "Jockey", price: Math.min(b, 449), rating: 4.6, reviews: 18500 },
+          { title: "Van Heusen Ultra Soft MicroModal Anti-Chafing Boxer Briefs", brand: "Van Heusen", price: Math.min(Math.round(b * 0.95), 499), rating: 4.5, reviews: 7600 },
+          { title: "Calvin Klein Modern Cotton Stretch Trunk", brand: "Calvin Klein", price: Math.min(Math.round(b * 1.1), 799), rating: 4.7, reviews: 5400 }
+        ];
+      } else if (text.includes('watch') || text.includes('titan') || text.includes('casio')) {
+        items = [
+          { title: "Titan Neo Splash Analog Black Dial Men Watch", brand: "Titan", price: Math.min(b, 3995), rating: 4.5, reviews: 3850 },
+          { title: "Casio Vintage Digital Gunmetal Stainless Steel Watch (A168WGG)", brand: "Casio", price: Math.min(Math.round(b * 0.9), 3495), rating: 4.7, reviews: 9400 },
+          { title: "Titan Workwear Chronograph Silver Dial Men Watch", brand: "Titan", price: Math.min(Math.round(b * 1.05), 4495), rating: 4.6, reviews: 2100 }
+        ];
+      } else {
+        const cap = mission.searchTerm.charAt(0).toUpperCase() + mission.searchTerm.slice(1);
+        items = [
+          { title: `${cap} (Top Rated • 100% Quality Edition)`, brand: "Top Brand", price: Math.max(150, Math.round(b * 0.88)), rating: 4.5, reviews: 2450 },
+          { title: `${cap} (Premium Pro Series)`, brand: "Premium Series", price: Math.max(150, Math.round(b * 0.95)), rating: 4.6, reviews: 1890 },
+          { title: `${cap} (Value Plus Edition)`, brand: "Value Series", price: Math.max(180, Math.round(b * 1.08)), rating: 4.3, reviews: 1540 }
+        ];
+      }
+
+      return items.map((it, idx) => {
+        const price = it.price;
+        const lowest = Math.round(price * 0.93);
+        const highest = Math.round(price * 1.2);
+        const thirdStore = (text.includes('protein') || text.includes('gym')) ? "HealthKart" : (text.includes('underwear') || text.includes('shoe') ? "Myntra" : "Tata CLiQ");
+
+        return {
+          id: 9001 + idx,
+          title: it.title,
+          brand: it.brand,
           category: mission.category,
-          price: p1,
-          mrp: Math.round(p1 * 1.3),
-          rating: 4.6,
-          reviewsCount: 3800,
-          thumbnail: getProductImage(mission.category, term, '', 0),
+          price: price,
+          mrp: Math.round(price * 1.25),
+          rating: it.rating,
+          reviewsCount: it.reviews,
+          thumbnail: getProductImage(mission.category, it.title, '', idx),
           stores: [
-            { name: "Amazon India", price: p1, isBest: true, inStock: true, delivery: "Tomorrow", link: getStoreDirectLink("Amazon India", `${capTerm} Top Rated`) },
-            { name: "Flipkart", price: Math.round(p1 * 1.05), isBest: false, inStock: true, delivery: "2 Days", link: getStoreDirectLink("Flipkart", `${capTerm} Top Rated`) },
-            { name: "Myntra / Brand Store", price: Math.round(p1 * 1.09), isBest: false, inStock: true, delivery: "Tomorrow", link: getStoreDirectLink("Myntra", `${capTerm}`) }
+            { name: "Amazon India", price: price, isBest: true, inStock: true, delivery: "Tomorrow", link: getStoreDirectLink("Amazon India", it.title) },
+            { name: "Flipkart", price: Math.round(price * 1.04), isBest: false, inStock: true, delivery: "2 Days", link: getStoreDirectLink("Flipkart", it.title) },
+            { name: thirdStore, price: Math.round(price * 1.08), isBest: false, inStock: true, delivery: "3 Days", link: getStoreDirectLink(thirdStore, it.title) }
           ],
           priceHistory: {
-            lowest30Days: Math.round(p1 * 0.95), highest30Days: Math.round(p1 * 1.25), averagePrice: Math.round(p1 * 1.1), trend: "downward",
-            priceDropPrediction: `🔥 Current price (₹${p1}) is within 3% of 60-day lowest record! Best time to buy.`,
-            historyPoints: [{ date: "15 Jul", price: Math.round(p1 * 1.25) }, { date: "28 Jul", price: Math.round(p1 * 1.15) }, { date: "06 Aug", price: Math.round(p1 * 1.05) }, { date: "14 Aug", price: Math.round(p1 * 1.02) }, { date: "Today", price: p1 }]
+            lowest30Days: lowest, highest30Days: highest, averagePrice: Math.round((lowest + highest) / 2), trend: "downward",
+            priceDropPrediction: `🔥 Current price (₹${price}) is near 60-day recorded low. Best time to buy!`,
+            historyPoints: [{ date: "15 Jul", price: highest }, { date: "28 Jul", price: Math.round(highest * 0.96) }, { date: "06 Aug", price: Math.round(price * 1.05) }, { date: "14 Aug", price: Math.round(price * 1.02) }, { date: "Today", price: price }]
           },
-          verdict: "BUY NOW", verdictType: "buy",
-          verdictReason: `Current price of ₹${p1} is within your ₹${budget} budget and near historical low record.`,
-          tradeOff: "Fast-selling item; limited stock on lowest priced store.",
+          verdict: price > b ? "WAIT FOR SALE" : "BUY NOW", verdictType: price > b ? "wait" : "buy",
+          verdictReason: price > b ? `Exceeds budget cap by ₹${price - b}. Wait for next sale discount.` : `Current price of ₹${price} is within budget and near historical low.`,
+          tradeOff: price > b ? `Price exceeds budget by ₹${price - b}` : "Fast-selling item; limited stock on lowest store.",
           attributes: {}
-        },
-        {
-          id: 9002,
-          title: `${capTerm} (Premium Soft Series • Pack of Choice)`,
-          brand: "Premium Choice",
-          category: mission.category,
-          price: p2,
-          mrp: Math.round(p2 * 1.25),
-          rating: 4.5,
-          reviewsCount: 2100,
-          thumbnail: getProductImage(mission.category, term, '', 1),
-          stores: [
-            { name: "Amazon India", price: p2, isBest: true, inStock: true, delivery: "Tomorrow", link: getStoreDirectLink("Amazon India", `${capTerm} Premium`) },
-            { name: "Flipkart", price: Math.round(p2 * 1.04), isBest: false, inStock: true, delivery: "2 Days", link: getStoreDirectLink("Flipkart", `${capTerm} Premium`) }
-          ],
-          priceHistory: {
-            lowest30Days: Math.round(p2 * 0.92), highest30Days: Math.round(p2 * 1.2), averagePrice: Math.round(p2 * 1.08), trend: "stable",
-            priceDropPrediction: "⚡ Stable market price. Highly rated comfort and customer satisfaction.",
-            historyPoints: [{ date: "18 Jul", price: Math.round(p2 * 1.2) }, { date: "30 Jul", price: Math.round(p2 * 1.12) }, { date: "08 Aug", price: Math.round(p2 * 1.05) }, { date: "15 Aug", price: p2 }, { date: "Today", price: p2 }]
-          },
-          verdict: "BUY NOW", verdictType: "buy",
-          verdictReason: `High customer satisfaction and reliable quality under ₹${budget}.`,
-          tradeOff: "Slightly higher price than entry-level alternative.",
-          attributes: {}
-        },
-        {
-          id: 9003,
-          title: `${capTerm} (Value Plus Edition)`,
-          brand: "Value Edition",
-          category: mission.category,
-          price: p3,
-          mrp: Math.round(p3 * 1.2),
-          rating: 4.3,
-          reviewsCount: 1540,
-          thumbnail: getProductImage(mission.category, term, '', 2),
-          stores: [
-            { name: "Flipkart", price: p3, isBest: true, inStock: true, delivery: "2 Days", link: getStoreDirectLink("Flipkart", `${capTerm} Value`) },
-            { name: "Amazon India", price: Math.round(p3 * 1.06), isBest: false, inStock: true, delivery: "Tomorrow", link: getStoreDirectLink("Amazon India", `${capTerm} Value`) }
-          ],
-          priceHistory: {
-            lowest30Days: Math.round(p3 * 0.88), highest30Days: Math.round(p3 * 1.15), averagePrice: Math.round(p3 * 1.02), trend: "upward",
-            priceDropPrediction: "⏳ Fair price. Moderate chance of discount during upcoming promotional sales.",
-            historyPoints: [{ date: "15 Jul", price: Math.round(p3 * 0.92) }, { date: "28 Jul", price: Math.round(p3 * 0.98) }, { date: "06 Aug", price: p3 }, { date: "14 Aug", price: p3 }, { date: "Today", price: p3 }]
-          },
-          verdict: p3 > budget ? "WAIT FOR SALE" : "BUY NOW", verdictType: p3 > budget ? "wait" : "buy",
-          verdictReason: p3 > budget ? `Exceeds budget cap by ₹${p3 - budget}. Wait for next sale discount.` : "Solid budget choice.",
-          tradeOff: p3 > budget ? `Price exceeds budget by ₹${p3 - budget}` : "Basic packaging.",
-          attributes: {}
-        }
-      ];
+        };
+      });
     }
 
     // Main Search Handler
@@ -657,7 +644,7 @@
               const highest = Math.round(numPrice * 1.18);
               const title = item.title || currentMission.searchTerm;
 
-              // Build real multi-store comparison with direct deep-links
+              // Build distinct multi-store comparison with direct deep-links
               const stores = [
                 {
                   name: item.source || "Amazon India",
@@ -674,7 +661,7 @@
                   delivery: "2-3 Days"
                 },
                 {
-                  name: "Myntra / Brand Store",
+                  name: "Myntra / Specialist Store",
                   price: Math.round(numPrice * 1.08),
                   isBest: false,
                   link: getStoreDirectLink("Myntra", title),
@@ -790,7 +777,7 @@
             <div class="flex flex-col lg:flex-row gap-6 items-start">
               
               <div class="relative w-full lg:w-56 h-48 rounded-2xl overflow-hidden bg-slate-950 shrink-0 border border-slate-800">
-                <img src="${p.thumbnail}" alt="${p.title}" class="w-full h-full object-cover opacity-90" onerror="this.src='https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80'" />
+                <img src="${p.thumbnail}" alt="${p.title}" class="w-full h-full object-cover opacity-90" onerror="this.src='https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80'" />
                 <div class="absolute top-3 left-3 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider ${isWinner ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-300'}">
                   #${idx + 1} ${isWinner ? 'Best Overall' : 'Alternative'}
                 </div>
@@ -821,7 +808,7 @@
                 <!-- 📈 BuyHatke Price History Graph -->
                 ${graphHtml}
 
-                <!-- Multi-Store Box with Direct Links -->
+                <!-- Multi-Store Box with Distinct Direct Links -->
                 <div class="bg-slate-950/70 rounded-2xl border border-slate-800 p-3.5 space-y-2">
                   <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Multi-Store Price Comparison (Direct Links)</div>
                   <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">

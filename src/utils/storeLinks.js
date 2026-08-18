@@ -72,53 +72,77 @@ export function buildStoreDirectLink(storeName = '', productTitle = '', original
 }
 
 /**
- * Ensure every product has multi-store price comparisons across major Indian platforms
+ * Ensure every product has multi-store price comparisons across distinct Indian platforms
+ * (Guaranteed NO duplicate store names)
  */
 export function ensureMultiStoreComparison(product) {
   const title = product.title || '';
   const price = product.price || 1000;
   const stores = product.stores || [];
 
-  // If we already have 2+ stores with valid pricing, ensure deep links
-  if (stores.length >= 2) {
-    return stores.map(s => ({
-      ...s,
-      link: buildStoreDirectLink(s.name, title, s.link)
-    }));
+  // Determine appropriate 3rd store based on category / brand
+  const text = `${product.category} ${title}`.toLowerCase();
+  let thirdStoreName = 'Tata CLiQ';
+  if (text.includes('underwear') || text.includes('shirt') || text.includes('pant') || text.includes('shoe') || text.includes('cloth')) {
+    thirdStoreName = 'Myntra';
+  } else if (text.includes('laptop') || text.includes('phone') || text.includes('headphone') || text.includes('tv') || text.includes('keyboard')) {
+    thirdStoreName = 'Croma';
+  } else if (text.includes('watch') || text.includes('titan')) {
+    thirdStoreName = 'Titan.co.in';
+  } else if (text.includes('protein') || text.includes('creatine') || text.includes('fitness')) {
+    thirdStoreName = 'HealthKart';
+  } else if (text.includes('skin') || text.includes('perfume') || text.includes('cosmetic')) {
+    thirdStoreName = 'Nykaa';
   }
 
-  // Generate realistic multi-store price comparison across top Indian stores
-  const firstStore = stores[0] || {};
-  const isAmazon = (firstStore.name || '').toLowerCase().includes('amazon');
+  // If we already have 2+ DISTINCT stores with valid pricing, keep them and fix links
+  if (stores.length >= 2) {
+    const storeNames = new Set();
+    const uniqueStores = [];
+    for (const s of stores) {
+      const cleanName = s.name || 'Merchant';
+      if (!storeNames.has(cleanName)) {
+        storeNames.add(cleanName);
+        uniqueStores.push({
+          ...s,
+          link: buildStoreDirectLink(s.name, title, s.link)
+        });
+      }
+    }
+    if (uniqueStores.length >= 2) {
+      return uniqueStores;
+    }
+  }
 
+  // Create 3 guaranteed distinct stores: Amazon India (Best), Flipkart, and Retailer/Specialist
   const store1 = {
-    name: firstStore.name || 'Amazon India',
+    name: 'Amazon India',
     price: price,
     isBest: true,
     inStock: true,
-    delivery: firstStore.delivery || 'Tomorrow, by 2 PM',
-    returnDays: firstStore.returnDays || 7,
-    link: buildStoreDirectLink(firstStore.name || 'Amazon India', title, firstStore.link)
+    delivery: 'Tomorrow, by 2 PM',
+    returnDays: 7,
+    link: buildStoreDirectLink('Amazon India', title)
   };
 
   const store2 = {
-    name: isAmazon ? 'Flipkart' : 'Amazon India',
-    price: Math.round(price * 1.04), // slightly higher
+    name: 'Flipkart',
+    price: Math.round(price * 1.04),
     isBest: false,
     inStock: true,
     delivery: '2-3 Days',
     returnDays: 7,
-    link: buildStoreDirectLink(isAmazon ? 'Flipkart' : 'Amazon India', title)
+    link: buildStoreDirectLink('Flipkart', title)
   };
 
   const store3 = {
-    name: product.brand ? `${product.brand} Official Store` : 'Tata CLiQ',
+    name: thirdStoreName,
     price: Math.round(price * 1.07),
     isBest: false,
     inStock: true,
     delivery: '3-4 Days',
     returnDays: 14,
-    link: buildStoreDirectLink(product.brand || 'Tata CLiQ', title)
+    link: buildStoreDirectLink(thirdStoreName, title)
   };
 
   return [store1, store2, store3];
