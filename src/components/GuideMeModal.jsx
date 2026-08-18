@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, X, ArrowRight, Check, Zap, Target, DollarSign, Award, Clock, Edit3, ShoppingBag } from 'lucide-react';
+import { Sparkles, X, ArrowRight, Check, Target, DollarSign, Award, Edit3, ShoppingBag } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export default function GuideMeModal({ isOpen, onClose, onComplete }) {

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, Search, Sliders, CheckCircle2, ArrowRight, 
-  Laptop, Smartphone, Headphones, Shirt, Zap, ShieldAlert,
-  Database, RefreshCw, Terminal, Check, Info, Award,
-  AlertTriangle, Star, Bookmark, ExternalLink, ThumbsUp,
-  History, Download, X, Layers, TrendingUp, TrendingDown,
-  ShieldCheck, BarChart3, Store, Tag, Clock, Minus,
-  Radio, Globe, Wifi, Watch, Footprints, DollarSign, Truck
+  Laptop, Smartphone, Zap, Check, Info, Award,
+  AlertTriangle, Star, Bookmark, ExternalLink,
+  History, Download, X, Layers,
+  ShieldCheck, Store, Clock,
+  Globe, Wifi, Watch, Footprints, Truck
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { extractShoppingMission } from './services/geminiIntent';
