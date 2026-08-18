@@ -79,7 +79,7 @@ export function formatSerperResults(shoppingResults = [], mission = {}) {
 
   const budget = mission.budget_max || 50000;
 
-  return shoppingResults.slice(0, 5).map((item, idx) => {
+  return shoppingResults.slice(0, 10).map((item, idx) => {
     const rawPrice = item.price || '0';
     const numPrice = parseInt(rawPrice.replace(/[^\d]/g, ''), 10) || 1000;
     const mrp = Math.round(numPrice * 1.25);

@@ -231,7 +231,7 @@ export default function App() {
     return Math.round(((mrp - price) / mrp) * 100);
   };
 
-  const top3 = rankedProducts.slice(0, 3);
+  const top3 = rankedProducts.slice(0, 10); // Show up to 10 best results
 
   return (
     <div id="decide-main-view" className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
@@ -524,17 +524,18 @@ export default function App() {
 
             </div>
 
-            {/* Top 3 Ranked Cards Header + Compare Button */}
+            {/* Ranked Cards Header + Compare Button */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4">
               <div>
                 <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
                   <Award className="w-6 h-6 text-amber-400" />
-                  <span>Ranked Candidates for "{mission.searchTerm || mission.category}"</span>
+                  <span>{top3.length} Results for "{mission.searchTerm || mission.category}"</span>
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Ranked deterministically using your live priority weights + BuyHatke price intelligence across 6 marketplaces.
+                  Ranked by live priority weights + BuyHatke price intelligence across 6 marketplaces — showing all {top3.length} best matches.
                 </p>
               </div>
+
 
               {/* Compare Side-by-Side Button */}
               <button
