@@ -1,96 +1,72 @@
 /**
- * DECIDE - Deterministic Scoring & Ranking Engine
- * Supports Laptops, Smartphones, Audio, and Fashion/Clothing
+ * DECIDE - Universal Deterministic Scoring & Ranking Engine
+ * Evaluates candidates for ANY category (Watches, Laptops, Phones, Shoes, Audio, Fashion, etc.)
  */
 
 export function normalizeAttribute(attrKey, value, category) {
-  if (value === undefined || value === null) return 70;
+  if (value === undefined || value === null) return 75;
 
-  switch (attrKey) {
-    case 'battery':
-    case 'battery_hours':
-      if (category === 'laptop') {
-        return Math.min(100, Math.max(20, Math.round((value / 15) * 100)));
-      } else if (category === 'phone') {
-        return Math.min(100, Math.max(20, Math.round((value / 18) * 100)));
-      } else {
-        return Math.min(100, Math.max(20, Math.round((value / 70) * 100)));
-      }
-
-    case 'portability':
-    case 'weight_kg':
-      if (typeof value === 'number' && value < 5) {
-        return Math.min(100, Math.max(30, Math.round(100 - (value - 1.0) * 28)));
-      }
-      return typeof value === 'number' ? value : 75;
-
-    // Fashion / Clothing Attributes
-    case 'fabric':
-    case 'fabric_quality':
-    case 'comfort':
-    case 'comfort_score':
-    case 'durability':
-    case 'durability_score':
-    case 'breathability':
-    case 'breathability_score':
-    case 'fit':
-    case 'fit_score':
-    // Electronics Benchmarks
-    case 'performance':
-    case 'performance_score':
-    case 'gaming':
-    case 'gaming_score':
-    case 'camera':
-    case 'camera_score':
-    case 'display':
-    case 'display_score':
-    case 'anc':
-    case 'anc_score':
-    case 'sound':
-    case 'sound_quality':
-    case 'build_quality':
-      return Math.min(100, Math.max(20, Math.round(value)));
-
-    default:
-      return typeof value === 'number' ? Math.min(100, Math.max(0, value)) : 75;
+  if (typeof value === 'number') {
+    // If it's already a 0-100 score
+    if (value <= 100 && value >= 0) {
+      return Math.round(value);
+    }
+    // If it's battery hours (e.g. 6 to 40)
+    if (attrKey.includes('battery')) {
+      return Math.min(100, Math.max(30, Math.round((value / 15) * 100)));
+    }
+    // If it's weight in kg (e.g. 1.2 to 3.0)
+    if (attrKey.includes('weight')) {
+      return Math.min(100, Math.max(30, Math.round(100 - (value - 1.0) * 28)));
+    }
   }
+
+  return 75;
 }
 
 function getProductAttributeValue(product, priorityKey) {
   const attrs = product.attributes || {};
   const k = priorityKey.toLowerCase();
 
-  // Fashion & Apparel Mappings
-  if (k.includes('fabric') || k.includes('material') || k.includes('cotton')) return attrs.fabric_quality || 85;
-  if (k.includes('comfort') || k.includes('soft')) return attrs.comfort_score || 88;
-  if (k.includes('durab') || k.includes('stitch')) return attrs.durability_score || 85;
-  if (k.includes('breath')) return attrs.breathability_score || 85;
-  if (k.includes('fit') || k.includes('style')) return attrs.fit_score || 85;
+  // Check direct key match
+  if (attrs[priorityKey] !== undefined) return attrs[priorityKey];
 
-  // Electronics Mappings
-  if (k.includes('battery')) return attrs.battery_hours || attrs.battery_score || 6;
-  if (k.includes('portab') || k.includes('weight')) return attrs.portability_score || attrs.weight_kg || 75;
-  if (k.includes('perform') || k.includes('code') || k.includes('cpu')) return attrs.performance_score || 75;
-  if (k.includes('gam') || k.includes('gpu')) return attrs.gaming_score || 60;
-  if (k.includes('display') || k.includes('screen')) return attrs.display_score || 75;
-  if (k.includes('camera') || k.includes('photo')) return attrs.camera_score || 75;
-  if (k.includes('anc') || k.includes('noise')) return attrs.anc_score || 75;
-  if (k.includes('sound') || k.includes('bass') || k.includes('audio')) return attrs.sound_quality || 75;
+  // Fuzzy match in attributes object
+  for (const [key, val] of Object.entries(attrs)) {
+    if (key.toLowerCase().includes(k) || k.includes(key.toLowerCase())) {
+      return val;
+    }
+  }
 
-  return attrs[priorityKey] || 75;
+  // Common attribute aliases
+  if (k.includes('build') || k.includes('glass') || k.includes('strap') || k.includes('water')) return attrs.build_quality || attrs.water_resistance || 88;
+  if (k.includes('style') || k.includes('design') || k.includes('look')) return attrs.style_design || attrs.fit || 90;
+  if (k.includes('cushion') || k.includes('comfort') || k.includes('soft')) return attrs.comfort || attrs.comfort_cushion || 88;
+  if (k.includes('durab') || k.includes('sole') || k.includes('stitch')) return attrs.durability || 85;
+  if (k.includes('grip') || k.includes('tract')) return attrs.grip || 85;
+  if (k.includes('battery') || k.includes('movement')) return attrs.battery || attrs.battery_movement || 85;
+  if (k.includes('perform') || k.includes('speed') || k.includes('cpu')) return attrs.performance || 85;
+  if (k.includes('gam') || k.includes('gpu')) return attrs.gaming || 75;
+  if (k.includes('camera') || k.includes('photo')) return attrs.camera || 80;
+  if (k.includes('display') || k.includes('screen')) return attrs.display || 85;
+  if (k.includes('anc') || k.includes('noise')) return attrs.anc || 85;
+  if (k.includes('sound') || k.includes('bass') || k.includes('audio')) return attrs.sound || 85;
+  if (k.includes('fabric') || k.includes('cotton')) return attrs.fabric || 88;
+
+  return 80;
 }
 
 export function scoreAndRankProducts(products, mission) {
   if (!products || products.length === 0) return [];
 
-  const budgetMax = mission.budget_max || 70000;
+  const budgetMax = mission.budget_max || 50000;
   const priorities = mission.priorities || [];
-  const category = mission.category || 'laptop';
+  const category = mission.category || 'product';
 
-  const totalWeight = priorities.reduce((sum, p) => sum + (Number(p.weight) || 0.1), 0);
+  const totalWeight = priorities.reduce((sum, p) => sum + (Number(p.weight) || 0.2), 0) || 1;
   const normalizedPriorities = priorities.map(p => ({
     ...p,
-    weight: (Number(p.weight) || 0.1) / totalWeight
+    weight: (Number(p.weight) || 0.2) / totalWeight
   }));
 
   const scoredProducts = products.map(product => {
@@ -116,18 +92,22 @@ export function scoreAndRankProducts(products, mission) {
     const isOverBudget = product.price > budgetMax;
     const budgetDiff = product.price - budgetMax;
 
-    let finalMatchScore = rawWeightedScore;
+    let finalMatchScore = rawWeightedScore || 75;
 
+    // Price adjustment
     if (isOverBudget) {
-      const penalty = 35 + Math.min(25, (budgetDiff / budgetMax) * 50);
-      finalMatchScore = Math.max(10, finalMatchScore - penalty);
+      const penalty = 30 + Math.min(30, (budgetDiff / budgetMax) * 50);
+      finalMatchScore = Math.max(15, finalMatchScore - penalty);
+    } else {
+      // Bonus for being within budget
+      finalMatchScore = Math.min(99, finalMatchScore + 5);
     }
 
     const sortedBreakdown = [...attributeBreakdown].sort((a, b) => b.normalizedScore - a.normalizedScore);
-    const topStrength = sortedBreakdown[0] || { priorityLabel: 'Specifications', normalizedScore: 85 };
-    const weakestAttribute = sortedBreakdown[sortedBreakdown.length - 1] || { priorityLabel: 'General', normalizedScore: 70 };
+    const topStrength = sortedBreakdown[0] || { priorityLabel: 'Quality & Value', normalizedScore: 88 };
+    const weakestAttribute = sortedBreakdown[sortedBreakdown.length - 1] || { priorityLabel: 'Secondary Features', normalizedScore: 75 };
 
-    const reasons = [
+    const reasons = product.reasons && product.reasons.length > 0 ? product.reasons : [
       `Top rating in ${topStrength.priorityLabel} (${topStrength.normalizedScore}/100)`,
       isOverBudget 
         ? `⚠️ Exceeds specified budget of ₹${budgetMax.toLocaleString('en-IN')}` 
@@ -135,9 +115,9 @@ export function scoreAndRankProducts(products, mission) {
       `Verified rating: ★ ${product.rating} / 5.0`
     ];
 
-    const tradeOff = isOverBudget
+    const tradeOff = product.tradeOff || (isOverBudget
       ? `Price exceeds budget by ₹${budgetDiff.toLocaleString('en-IN')}`
-      : `${weakestAttribute.priorityLabel} is relatively lower (${weakestAttribute.normalizedScore}/100)`;
+      : `${weakestAttribute.priorityLabel} is relatively lower (${weakestAttribute.normalizedScore}/100)`);
 
     return {
       ...product,

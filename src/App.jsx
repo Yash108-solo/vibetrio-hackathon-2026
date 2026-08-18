@@ -6,7 +6,7 @@ import {
   AlertTriangle, Star, Bookmark, ExternalLink, ThumbsUp,
   History, Download, X, Layers, TrendingUp, TrendingDown,
   ShieldCheck, BarChart3, Store, Tag, Clock, Minus,
-  Radio, Globe, Wifi
+  Radio, Globe, Wifi, Watch, Footprints
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { extractShoppingMission } from './services/geminiIntent';
@@ -18,6 +18,7 @@ import { searchProducts, buildSearchQuery } from './services/serperSearch';
 import { analyzeProducts } from './services/geminiVerdict';
 import ComparisonModal from './components/ComparisonModal';
 import ApiKeyModal from './components/ApiKeyModal';
+import PriceHistoryGraph from './components/PriceHistoryGraph';
 
 export default function App() {
   const [query, setQuery] = useState('');
@@ -37,28 +38,28 @@ export default function App() {
 
   const HERO_EXAMPLES = [
     {
+      icon: Watch,
+      label: "Titan Watches",
+      text: "I need a Titan watch under ₹4,500 for office wear with water resistance and metal strap.",
+      tag: "Watch • Under ₹4.5k"
+    },
+    {
       icon: Laptop,
       label: "CS Student Laptop",
-      text: "I need a laptop under ₹70,000 for coding, college and occasional gaming. Battery and portability matter more than looks.",
+      text: "I need a laptop under ₹70,000 for coding, college and occasional gaming. Battery matters more than looks.",
       tag: "Laptop • Under ₹70k"
     },
     {
       icon: Smartphone,
       label: "Productivity Phone",
-      text: "Looking for a smartphone under ₹25,000 with exceptional battery life and clean display for daily productivity.",
+      text: "Looking for a smartphone under ₹25,000 with exceptional battery life and clean display for daily use.",
       tag: "Phone • Under ₹25k"
     },
     {
-      icon: Headphones,
-      label: "ANC Travel Audio",
-      text: "I need wireless noise-cancelling headphones under ₹10,000 for study and travel with great comfort.",
-      tag: "Audio • Under ₹10k"
-    },
-    {
-      icon: Shirt,
-      label: "Premium Cotton T-Shirt",
-      text: "I need a comfortable 100% pure cotton oversized t-shirt under ₹1,000 for college wear.",
-      tag: "Fashion • Under ₹1k"
+      icon: Footprints,
+      label: "Running Shoes",
+      text: "I need lightweight breathable running shoes under ₹3,500 with durable sole cushioning.",
+      tag: "Shoes • Under ₹3.5k"
     }
   ];
 
@@ -81,41 +82,41 @@ export default function App() {
 
     try {
       // ── STEP 1: Extract Shopping Intent (Gemini Call #1) ──
-      setLoadingStage('Understanding your needs...');
+      setLoadingStage('Understanding your exact product needs & budget...');
       const extractedMission = await extractShoppingMission(targetText);
       setMission(extractedMission);
       setJsonLog(JSON.stringify(extractedMission, null, 2));
 
       // ── STEP 2: Search Real Products (Serper API) ──
       let products = null;
-      setLoadingStage('Scanning real stores across India...');
+      setLoadingStage(`Scanning live prices for "${extractedMission.searchTerm || extractedMission.category}" across India...`);
       
       const searchQuery = buildSearchQuery(extractedMission, targetText);
       const serperResults = await searchProducts(searchQuery);
 
       if (serperResults && serperResults.length > 0) {
-        // ── STEP 3: AI Analysis & Verdict (Gemini Call #2) ──
-        setLoadingStage('AI analyzing prices & generating verdicts...');
+        // ── STEP 3: AI Analysis & BuyHatke Price Intelligence (Gemini Call #2) ──
+        setLoadingStage('Analyzing price trends & generating BuyHatke-style verdicts...');
         products = await analyzeProducts(serperResults, extractedMission);
 
         if (products && products.length > 0) {
           setIsRealTime(true);
-          console.log(`[Pipeline] ✅ Real-time mode: ${products.length} products from web`);
+          console.log(`[Pipeline] ✅ Real-time mode: ${products.length} live products analyzed`);
         }
       }
 
-      // ── STEP 4: Fallback to Seed Catalog if APIs failed ──
+      // ── STEP 4: Fallback to Seed Catalog if APIs failed or returned empty ──
       if (!products || products.length === 0) {
-        setLoadingStage('Using curated catalog...');
+        setLoadingStage('Matching with curated product catalog...');
         products = await getProductsByCategory(extractedMission.category);
         setIsRealTime(false);
-        console.log(`[Pipeline] 📦 Seed mode: ${products.length} products from catalog`);
+        console.log(`[Pipeline] 📦 Seed mode: ${products.length} products loaded`);
       }
 
       setRawProducts(products);
 
       // ── STEP 5: Deterministic Scoring & Ranking ──
-      setLoadingStage('Ranking with your priorities...');
+      setLoadingStage('Ranking matches with live priority weights...');
       const ranked = scoreAndRankProducts(products, extractedMission);
       setRankedProducts(ranked);
 
@@ -204,18 +205,6 @@ export default function App() {
     return Math.round(((mrp - price) / mrp) * 100);
   };
 
-  // Helper: get trend display
-  const getTrendDisplay = (trend) => {
-    switch (trend) {
-      case 'downward':
-        return { label: '↓ Dropping', color: 'text-emerald-400' };
-      case 'upward':
-        return { label: '↑ Rising', color: 'text-rose-400' };
-      default:
-        return { label: '→ Stable', color: 'text-slate-400' };
-    }
-  };
-
   const top3 = rankedProducts.slice(0, 3);
 
   return (
@@ -234,10 +223,10 @@ export default function App() {
                   DECIDE
                 </span>
                 <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold">
-                  ShopSense AI
+                  BuyHatke + AI Intelligence
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium">Multi-Store Decision Intelligence • Know What to Buy</p>
+              <p className="text-[11px] text-slate-400 font-medium">Real-Time Multi-Store Price History & Decision Engine</p>
             </div>
           </div>
 
@@ -255,7 +244,7 @@ export default function App() {
               className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 px-3 py-2 rounded-xl transition"
             >
               <Download className="w-3.5 h-3.5 text-slate-400" />
-              <span>Export PDF Report</span>
+              <span>Export PDF</span>
             </button>
 
             <button
@@ -263,7 +252,7 @@ export default function App() {
               className="inline-flex items-center gap-1.5 text-xs font-semibold bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 px-3.5 py-2 rounded-xl transition"
             >
               <History className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Saved History ({decisionHistory.length})</span>
+              <span>Saved ({decisionHistory.length})</span>
             </button>
           </div>
         </div>
@@ -276,16 +265,16 @@ export default function App() {
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" />
-            Real-Time Multi-Store Intelligence • Not Just Search
+            BuyHatke Price History • Real-Time Multi-Store AI Search
           </div>
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-            Compare prices, verify data, <br className="hidden sm:inline" />
+            Search any product. <br className="hidden sm:inline" />
             <span className="bg-gradient-to-r from-indigo-400 via-indigo-200 to-emerald-400 bg-clip-text text-transparent">
-              decide with confidence.
+              Track price history, compare stores, decide.
             </span>
           </h1>
           <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
-            Tell us what you're buying. We scan live prices from Amazon, Flipkart & more, analyze with AI, and show transparent verdicts with trade-offs.
+            Watches, Laptops, Shoes, Phones & more. We scan live store prices, analyze 60-day price charts, and give you an honest Buy / Wait verdict.
           </p>
         </div>
 
@@ -301,7 +290,7 @@ export default function App() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="e.g. I need a laptop under ₹70,000 for coding, college and occasional gaming..."
+                placeholder="e.g. I need a Titan watch under ₹4500 with water resistance and metal strap..."
                 className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-12 pr-4 py-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
               />
             </div>
@@ -318,7 +307,7 @@ export default function App() {
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  <span>Find My Match</span>
+                  <span>Analyze & Find Best Deal</span>
                 </>
               )}
             </button>
@@ -375,11 +364,11 @@ export default function App() {
         {sliderAlert && (
           <div className="bg-emerald-500/15 border border-emerald-500/40 rounded-2xl p-3.5 text-center text-xs font-semibold text-emerald-300 flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2">
             <Zap className="w-4 h-4 text-emerald-400 animate-bounce" />
-            <span>⚡ Priorities adjusted! Match scores and rankings recalculated deterministically in 0.01s.</span>
+            <span>⚡ Priorities adjusted! Match scores recalculated deterministically in 0.01s.</span>
           </div>
         )}
 
-        {/* Decision Model & Top 3 Results View */}
+        {/* Decision Model & Top Results View */}
         {mission && top3.length > 0 && (
           <div className="space-y-8 animate-in fade-in duration-300">
             
@@ -392,12 +381,12 @@ export default function App() {
               {isRealTime ? (
                 <>
                   <Wifi className="w-4 h-4 animate-pulse" />
-                  <span>🟢 Live Data — Real-time prices from Google Shopping India</span>
+                  <span>🟢 Live Data — Real-time Google Shopping India Prices</span>
                 </>
               ) : (
                 <>
                   <Database className="w-4 h-4" />
-                  <span>📦 Curated Catalog — Add SERPER API key for live prices</span>
+                  <span>📦 Curated Offline Catalog — Set Serper API Key for Live Web Results</span>
                 </>
               )}
             </div>
@@ -421,8 +410,8 @@ export default function App() {
 
                 <div className="flex items-center gap-3">
                   <div className="bg-slate-950 px-4 py-2 rounded-2xl border border-slate-800 text-right">
-                    <div className="text-[10px] text-slate-500 uppercase font-semibold">Category</div>
-                    <div className="text-sm font-bold text-indigo-300 capitalize">{mission.category}</div>
+                    <div className="text-[10px] text-slate-500 uppercase font-semibold">Target Item</div>
+                    <div className="text-sm font-bold text-indigo-300 capitalize">{mission.searchTerm || mission.category}</div>
                   </div>
                   <div className="bg-slate-950 px-4 py-2 rounded-2xl border border-slate-800 text-right">
                     <div className="text-[10px] text-slate-500 uppercase font-semibold">Budget Cap</div>
@@ -431,7 +420,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Priority Sliders */}
+              {/* Dynamic Category-Specific Priority Sliders */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {mission.priorities.map((p, idx) => (
                   <div key={idx} className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800/80 space-y-2.5">
@@ -467,12 +456,10 @@ export default function App() {
               <div>
                 <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
                   <Award className="w-6 h-6 text-amber-400" />
-                  <span>Ranked Matches ({rankedProducts.length} Evaluated)</span>
+                  <span>Ranked Candidates for "{mission.searchTerm || mission.category}"</span>
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  {isRealTime 
-                    ? 'Live prices from real stores. Ranked by your priority weights.' 
-                    : 'Ranked deterministically using your live priority weights.'}
+                  Ranked deterministically using your live priority weights + BuyHatke price intelligence.
                 </p>
               </div>
 
@@ -487,14 +474,13 @@ export default function App() {
             </div>
 
             {/* Top 3 Product Cards Stack */}
-            <div className="space-y-5">
+            <div className="space-y-6">
               {top3.map((product, rankIdx) => {
                 const isWinner = rankIdx === 0;
                 const isSaved = savedIds.includes(product.id);
                 const verdictStyle = getVerdictStyle(product.verdictType);
                 const discount = getDiscountPercent(product.mrp, product.price);
                 const bestStore = product.stores?.find(s => s.isBest) || product.stores?.[0];
-                const trendInfo = getTrendDisplay(product.priceHistory?.trend);
 
                 return (
                   <div 
@@ -507,7 +493,7 @@ export default function App() {
                   >
                     <div className="flex flex-col lg:flex-row gap-6 items-start">
                       
-                      {/* Product Thumbnail with Rank Badge */}
+                      {/* Product Thumbnail with Rank & Verdict Badges */}
                       <div className="relative w-full lg:w-56 h-48 sm:h-52 rounded-2xl overflow-hidden bg-slate-950 shrink-0 border border-slate-800">
                         <img 
                           src={product.thumbnail} 
@@ -536,7 +522,7 @@ export default function App() {
                         )}
                       </div>
 
-                      {/* Details & Trade-offs */}
+                      {/* Details, Multi-Store & BuyHatke Graph */}
                       <div className="flex-1 space-y-4 w-full">
                         
                         {/* Title, Brand & Match Score */}
@@ -559,7 +545,7 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Price Row: MRP strikethrough + Best Price + Rating + Reviews + Budget Status */}
+                        {/* Price Row: MRP strikethrough + Best Price + Rating + Budget Status */}
                         <div className="flex flex-wrap items-center gap-3">
                           <div className="flex items-baseline gap-2">
                             <span className="text-2xl font-black text-white font-mono">
@@ -586,13 +572,19 @@ export default function App() {
                           )}
                         </div>
 
+                        {/* 📈 BUYHATKE-STYLE PRICE HISTORY GRAPH */}
+                        <PriceHistoryGraph 
+                          priceHistory={product.priceHistory} 
+                          currentPrice={product.price}
+                          productTitle={product.title}
+                        />
+
                         {/* Multi-Store Pricing Row */}
                         {product.stores && product.stores.length > 0 && (
                           <div className="bg-slate-950/70 rounded-2xl border border-slate-800/80 p-3.5 space-y-2">
                             <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                               <Store className="w-3 h-3 text-indigo-400" />
-                              Multi-Store Price Comparison
-                              {isRealTime && <span className="text-emerald-400 ml-1">• Live</span>}
+                              Multi-Store Price Comparison (Live)
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                               {product.stores.map((store, sIdx) => (
@@ -618,10 +610,10 @@ export default function App() {
                                     ₹{store.price.toLocaleString('en-IN')}
                                   </div>
                                   <div className="text-[10px] text-slate-500 mt-0.5">
-                                    {store.inStock ? `⚡ ${store.delivery || 'Available'}` : '❌ Out of Stock'}
+                                    {store.inStock ? `⚡ ${store.delivery || 'In Stock'}` : '❌ Out of Stock'}
                                     {store.returnDays && ` • ${store.returnDays}d return`}
                                   </div>
-                                  {/* Buy Now link for real-time results */}
+                                  {/* Direct Link */}
                                   {store.link && store.link !== '#' && (
                                     <a 
                                       href={store.link} 
@@ -639,43 +631,14 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* Price History + Verdict Reason Row */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {/* 30-Day Price History */}
-                          {product.priceHistory && (
-                            <div className="bg-slate-950/70 rounded-xl border border-slate-800/80 p-3 space-y-1.5">
-                              <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                                <BarChart3 className="w-3 h-3 text-indigo-400" />
-                                30-Day Price Intelligence
-                              </div>
-                              <div className="flex items-center justify-between text-xs">
-                                <div>
-                                  <span className="text-slate-400">Low: </span>
-                                  <span className="font-mono font-bold text-emerald-400">₹{product.priceHistory.lowest30Days?.toLocaleString('en-IN')}</span>
-                                </div>
-                                <div>
-                                  <span className="text-slate-400">High: </span>
-                                  <span className="font-mono font-bold text-slate-300">₹{product.priceHistory.highest30Days?.toLocaleString('en-IN')}</span>
-                                </div>
-                              </div>
-                              <div className={`text-[11px] font-semibold ${trendInfo.color}`}>
-                                Trend: {trendInfo.label}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* AI Verdict Reason */}
-                          <div className={`rounded-xl border p-3 space-y-1.5 ${verdictStyle.bg} ${verdictStyle.border}`}>
-                            <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                              {verdictStyle.icon} AI Purchase Verdict
-                            </div>
-                            <div className={`text-xs font-bold ${verdictStyle.text}`}>
-                              {product.verdict || 'BUY NOW'}
-                            </div>
-                            <p className="text-[11px] text-slate-300 leading-relaxed">
-                              {product.verdictReason}
-                            </p>
+                        {/* AI Final Verdict Reason */}
+                        <div className={`rounded-2xl border p-3.5 space-y-1 ${verdictStyle.bg} ${verdictStyle.border}`}>
+                          <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                            {verdictStyle.icon} AI Final Verdict: <strong className={verdictStyle.text}>{product.verdict || 'BUY NOW'}</strong>
                           </div>
+                          <p className="text-xs text-slate-200 leading-relaxed">
+                            {product.verdictReason}
+                          </p>
                         </div>
 
                         {/* Grounded Reasons List */}
@@ -708,12 +671,6 @@ export default function App() {
                               <Clock className="w-3 h-3" />
                               <span>{product.verifiedAgo || 'Just now'}</span>
                             </div>
-                            {isRealTime && (
-                              <div className="flex items-center gap-1 text-[10px] text-emerald-500 font-semibold">
-                                <Wifi className="w-3 h-3" />
-                                <span>Live</span>
-                              </div>
-                            )}
                           </div>
 
                           <div className="flex items-center gap-2">
@@ -761,7 +718,7 @@ export default function App() {
         isOpen={isCompareOpen} 
         onClose={() => setIsCompareOpen(false)} 
         products={top3} 
-        category={mission?.category || 'laptop'}
+        category={mission?.category || 'watch'}
       />
 
       {/* API Key Settings Modal */}
@@ -827,7 +784,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-600">
-        DECIDE • ShopSense AI • VibeTrio • VibeCode Hackathon 2.0 (MHSSCE)
+        DECIDE • BuyHatke + ShopSense AI • VibeTrio • VibeCode Hackathon 2.0 (MHSSCE)
       </footer>
     </div>
   );

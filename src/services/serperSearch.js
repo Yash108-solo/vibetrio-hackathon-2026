@@ -1,7 +1,6 @@
 /**
  * DECIDE - Serper API Integration
  * Real-time product search using Google Shopping via Serper.dev
- * Fallback: returns null → App uses seed catalog
  */
 
 export function getSerperApiKey() {
@@ -10,7 +9,7 @@ export function getSerperApiKey() {
 
 /**
  * Search for real products via Serper Shopping API
- * @param {string} query - user's raw shopping query
+ * @param {string} query - search query
  * @param {number} numResults - max results to fetch (default 20)
  * @returns {Array|null} - raw shopping results or null on failure
  */
@@ -50,38 +49,23 @@ export async function searchProducts(query, numResults = 20) {
 }
 
 /**
- * Build an optimized shopping search query from the mission intent
- * Combines category, top priorities, and budget into a Google Shopping-friendly query
+ * Build an accurate, clean Google Shopping search query from the mission intent
+ * E.g., mission.searchTerm = "Titan watches", budget_max = 4500
+ * Output: "Titan watches under ₹4500"
  */
 export function buildSearchQuery(mission, originalQuery) {
   if (!mission) return originalQuery;
 
-  const parts = [];
+  const term = mission.searchTerm || originalQuery;
+  const budget = mission.budget_max;
 
-  // Add category
-  if (mission.category) {
-    parts.push(`best ${mission.category}`);
+  let query = term.trim();
+
+  // If budget exists and isn't already in query, append it
+  if (budget && !query.toLowerCase().includes('under') && !query.toLowerCase().includes('₹')) {
+    query = `${query} under ₹${budget}`;
   }
 
-  // Add top 2 priority labels for relevance
-  if (mission.priorities?.length) {
-    const topPriorities = [...mission.priorities]
-      .sort((a, b) => (b.weight || 0) - (a.weight || 0))
-      .slice(0, 2)
-      .map(p => p.label?.toLowerCase())
-      .filter(Boolean);
-    parts.push(...topPriorities);
-  }
-
-  // Add budget constraint
-  if (mission.budget_max) {
-    parts.push(`under ₹${mission.budget_max}`);
-  }
-
-  // India-specific
-  parts.push('India 2025');
-
-  const searchQuery = parts.join(' ');
-  console.log(`[Serper] Built search query: "${searchQuery}"`);
-  return searchQuery;
+  console.log(`[Serper] Built accurate shopping query: "${query}"`);
+  return query;
 }
