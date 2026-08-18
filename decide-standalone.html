@@ -88,11 +88,11 @@
           <div class="flex items-center gap-2">
             <h3 class="text-base font-extrabold text-white">Interactive Preference Questionnaire ('Interview Me')</h3>
             <span class="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded uppercase">
-              3-Step Wizard
+              4-Step Questionnaire
             </span>
           </div>
           <p class="text-xs text-slate-300 mt-0.5">
-            Not sure what model or specs to get? Let our AI interview you on budget brackets, feature priorities & delivery speed.
+            Answer questions with preset options or write your exact custom specifications and budget.
           </p>
         </div>
       </div>
@@ -148,11 +148,11 @@
             <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5"><i data-lucide="shirt" class="w-3.5 h-3.5 text-indigo-400"></i> Cotton Innerwear</span>
             <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">Apparel • Under ₹500</span>
           </button>
-          <button onclick="setQuery('I need a Titan watch under ₹4,500 for office wear with water resistance and metal strap.')" class="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition flex flex-col justify-between space-y-1.5">
+          <button onclick="setQuery('Titan watch under ₹4,500 for office wear with water resistance and metal strap')" class="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition flex flex-col justify-between space-y-1.5">
             <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5"><i data-lucide="watch" class="w-3.5 h-3.5 text-indigo-400"></i> Titan Watches</span>
             <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">Watch • Under ₹4.5k</span>
           </button>
-          <button onclick="setQuery('I need a laptop under ₹70,000 for coding, college and occasional gaming.')" class="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition flex flex-col justify-between space-y-1.5">
+          <button onclick="setQuery('laptop under ₹70,000 for coding, college and gaming')" class="text-left p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition flex flex-col justify-between space-y-1.5">
             <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5"><i data-lucide="laptop" class="w-3.5 h-3.5 text-indigo-400"></i> Coding Laptop</span>
             <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded w-fit">Laptop • Under ₹70k</span>
           </button>
@@ -223,17 +223,20 @@
 
   </main>
 
-  <!-- 🧙 Guide Me Modal -->
+  <!-- 🧙 Guide Me Modal (4-Step Dynamic Questionnaire with Options & Custom Inputs) -->
   <div id="guide-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 sm:p-6">
-    <div class="bg-slate-900 border border-indigo-500/40 rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col">
+    <div class="bg-slate-900 border border-indigo-500/40 rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
       <div class="p-5 sm:p-6 border-b border-slate-800 bg-slate-950/80 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-emerald-400 flex items-center justify-center text-white text-lg">
             🧙
           </div>
           <div>
-            <h2 class="text-lg font-black text-white">Interactive Preference Questionnaire</h2>
-            <p class="text-xs text-slate-400">Select what you need and our AI will build the ideal decision query</p>
+            <div class="flex items-center gap-2">
+              <h2 class="text-lg font-black text-white">Interactive Preference Questionnaire</h2>
+              <span id="guide-step-badge" class="text-[10px] font-mono uppercase bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20 font-bold">Step 1 of 4</span>
+            </div>
+            <p class="text-xs text-slate-400">Select options or write custom preferences for tailored decision model</p>
           </div>
         </div>
         <button onclick="toggleGuideModal(false)" class="p-2 text-slate-400 hover:text-slate-200 rounded-xl">
@@ -241,25 +244,108 @@
         </button>
       </div>
 
-      <div class="p-6 space-y-4">
-        <div class="space-y-2">
-          <label class="text-xs font-bold text-slate-300 uppercase">1. Pick Category:</label>
-          <div class="grid grid-cols-2 gap-2">
-            <button onclick="selectGuideCategory('protin powder under 1500')" class="p-3 bg-slate-950 border border-slate-800 hover:border-indigo-500 rounded-2xl text-left text-xs font-bold text-slate-200 flex items-center gap-2">
-              <span>💪</span> Whey Protein
-            </button>
-            <button onclick="selectGuideCategory('underwear under 500')" class="p-3 bg-slate-950 border border-slate-800 hover:border-indigo-500 rounded-2xl text-left text-xs font-bold text-slate-200 flex items-center gap-2">
-              <span>🩲</span> Cotton Innerwear
-            </button>
-            <button onclick="selectGuideCategory('Titan watch under 4500')" class="p-3 bg-slate-950 border border-slate-800 hover:border-indigo-500 rounded-2xl text-left text-xs font-bold text-slate-200 flex items-center gap-2">
-              <span>⌚</span> Titan Watches
-            </button>
-            <button onclick="selectGuideCategory('laptop under 70000')" class="p-3 bg-slate-950 border border-slate-800 hover:border-indigo-500 rounded-2xl text-left text-xs font-bold text-slate-200 flex items-center gap-2">
-              <span>💻</span> Coding Laptop
-            </button>
+      <div class="p-6 space-y-6 flex-1 overflow-y-auto">
+        
+        <!-- STEP 1: Product -->
+        <div id="guide-step-1" class="space-y-4">
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-slate-200 uppercase tracking-wider">Question 1: What product are you shopping for?</label>
+            <p class="text-[11px] text-slate-400">Select a category or write any specific product in the world.</p>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <button onclick="setGuideCat('smartphone')" class="g-cat-btn p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-semibold text-slate-300 hover:border-slate-700 text-left">📱 Smartphones</button>
+            <button onclick="setGuideCat('laptop')" class="g-cat-btn p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-semibold text-slate-300 hover:border-slate-700 text-left">💻 Laptops</button>
+            <button onclick="setGuideCat('whey protein powder')" class="g-cat-btn p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-semibold text-slate-300 hover:border-slate-700 text-left">💪 Whey Protein</button>
+            <button onclick="setGuideCat('watch')" class="g-cat-btn p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-semibold text-slate-300 hover:border-slate-700 text-left">⌚ Watches</button>
+            <button onclick="setGuideCat('underwear')" class="g-cat-btn p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-semibold text-slate-300 hover:border-slate-700 text-left">🩲 Innerwear</button>
+            <button onclick="setGuideCat('running shoes')" class="g-cat-btn p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-semibold text-slate-300 hover:border-slate-700 text-left">👟 Shoes</button>
+          </div>
+          <div class="pt-2 border-t border-slate-800 space-y-1.5">
+            <label class="text-xs font-bold text-indigo-300">Other / Manually Write Custom Product:</label>
+            <input id="g-custom-product" type="text" placeholder="e.g. Sony Bravia 55 inch TV, Mechanical keyboard, Skincare sunscreen..." class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none" />
           </div>
         </div>
+
+        <!-- STEP 2: Budget -->
+        <div id="guide-step-2" class="space-y-4 hidden">
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-slate-200 uppercase tracking-wider">Question 2: What is your maximum budget?</label>
+            <p class="text-[11px] text-slate-400">Pick a preset or write your custom max budget in ₹.</p>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button onclick="setGuideBudget(500)" class="g-bud-btn p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-bold text-center text-slate-300">Under ₹500</button>
+            <button onclick="setGuideBudget(1500)" class="g-bud-btn p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-bold text-center text-slate-300">Under ₹1,500</button>
+            <button onclick="setGuideBudget(4500)" class="g-bud-btn p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-bold text-center text-slate-300">Under ₹4,500</button>
+            <button onclick="setGuideBudget(15000)" class="g-bud-btn p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-bold text-center text-slate-300">Under ₹15,000</button>
+            <button onclick="setGuideBudget(30000)" class="g-bud-btn p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-bold text-center text-slate-300">Under ₹30,000</button>
+            <button onclick="setGuideBudget(60000)" class="g-bud-btn p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-bold text-center text-slate-300">Under ₹60,000</button>
+          </div>
+          <div class="pt-2 border-t border-slate-800 space-y-1.5">
+            <label class="text-xs font-bold text-emerald-300">Other / Enter Exact Custom Budget (₹):</label>
+            <input id="g-custom-budget" type="number" placeholder="e.g. 2500, 18500, 75000..." class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-2xl px-4 py-2.5 text-xs font-mono text-slate-100 focus:outline-none" />
+          </div>
+        </div>
+
+        <!-- STEP 3: Priorities -->
+        <div id="guide-step-3" class="space-y-4 hidden">
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-slate-200 uppercase tracking-wider">Question 3: What features matter most to you?</label>
+            <p class="text-[11px] text-slate-400">Select priorities or write your exact custom specifications.</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-semibold text-slate-300 flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" value="Long Battery Life" class="g-priority-chk accent-indigo-500" /> ⚡ Long Battery Life
+            </label>
+            <label class="p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-semibold text-slate-300 flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" value="High Performance & Speed" class="g-priority-chk accent-indigo-500" /> 🚀 High Performance
+            </label>
+            <label class="p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-semibold text-slate-300 flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" value="Build Quality & Durability" class="g-priority-chk accent-indigo-500" /> 🛡️ Build & Durability
+            </label>
+            <label class="p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-xs font-semibold text-slate-300 flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" value="Value For Money" class="g-priority-chk accent-indigo-500" /> 🏷️ Maximum Value
+            </label>
+          </div>
+          <div class="pt-2 border-t border-slate-800 space-y-1.5">
+            <label class="text-xs font-bold text-indigo-300">Other / Write Custom Specifications:</label>
+            <textarea id="g-custom-specs" rows="2" placeholder="e.g. Needs 16GB RAM, metal strap for office wear, chocolate flavor..." class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl p-3 text-xs text-slate-100 focus:outline-none resize-none"></textarea>
+          </div>
+        </div>
+
+        <!-- STEP 4: Stores -->
+        <div id="guide-step-4" class="space-y-4 hidden">
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-slate-200 uppercase tracking-wider">Question 4: Store & Delivery Preference</label>
+            <p class="text-[11px] text-slate-400">Choose your buying preference or write your custom store.</p>
+          </div>
+          <div class="space-y-2">
+            <button onclick="setGuideStore('lowest')" class="g-store-btn w-full p-3 rounded-2xl border border-emerald-500/50 bg-emerald-500/10 text-xs font-bold text-slate-200 text-left">
+              🏷️ Lowest Price Across All 6 Stores (Amazon, Flipkart, etc.)
+            </button>
+            <button onclick="setGuideStore('quick')" class="g-store-btn w-full p-3 rounded-2xl border border-slate-800 bg-slate-950/60 text-xs font-bold text-slate-200 text-left">
+              ⚡ 10–15 Min Quick Commerce (Blinkit & Zepto)
+            </button>
+          </div>
+          <div class="pt-2 border-t border-slate-800 space-y-1.5">
+            <label class="text-xs font-bold text-indigo-300">Other / Custom Store Preference:</label>
+            <input id="g-custom-store" type="text" placeholder="e.g. Only Amazon Prime, Tata CLiQ Luxury..." class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none" />
+          </div>
+        </div>
+
       </div>
+
+      <!-- Footer Nav -->
+      <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-950 flex items-center justify-between">
+        <button id="g-back-btn" onclick="prevGuideStep()" class="text-xs font-semibold px-4 py-2 text-slate-400 hover:text-white hidden">← Back</button>
+        <div></div>
+        <button id="g-next-btn" onclick="nextGuideStep()" class="text-xs font-bold px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1.5">
+          <span>Next Step</span> →
+        </button>
+        <button id="g-submit-btn" onclick="submitGuideForm()" class="text-xs font-bold px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-indigo-600 text-white hidden flex items-center gap-1.5">
+          <span>Generate Tailored Results</span> ✨
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -328,9 +414,17 @@
       }
     }
 
+    // Guide Modal Step Management
+    let currentGuideStep = 1;
+    let guideCategory = '';
+    let guideBudget = 2500;
+    let guideStore = 'lowest';
+
     function toggleGuideModal(show) {
       const modal = document.getElementById('guide-modal');
       if (show) {
+        currentGuideStep = 1;
+        updateGuideStepUI();
         modal.classList.remove('hidden');
         modal.classList.add('flex');
       } else {
@@ -339,8 +433,63 @@
       }
     }
 
-    function selectGuideCategory(q) {
+    function setGuideCat(cat) {
+      guideCategory = cat;
+      document.getElementById('g-custom-product').value = '';
+    }
+
+    function setGuideBudget(b) {
+      guideBudget = b;
+      document.getElementById('g-custom-budget').value = '';
+    }
+
+    function setGuideStore(s) {
+      guideStore = s;
+    }
+
+    function nextGuideStep() {
+      if (currentGuideStep < 4) {
+        currentGuideStep++;
+        updateGuideStepUI();
+      }
+    }
+
+    function prevGuideStep() {
+      if (currentGuideStep > 1) {
+        currentGuideStep--;
+        updateGuideStepUI();
+      }
+    }
+
+    function updateGuideStepUI() {
+      document.getElementById('guide-step-badge').textContent = `Step ${currentGuideStep} of 4`;
+      [1, 2, 3, 4].forEach(i => {
+        const el = document.getElementById(`guide-step-${i}`);
+        if (i === currentGuideStep) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      });
+
+      document.getElementById('g-back-btn').classList.toggle('hidden', currentGuideStep === 1);
+      document.getElementById('g-next-btn').classList.toggle('hidden', currentGuideStep === 4);
+      document.getElementById('g-submit-btn').classList.toggle('hidden', currentGuideStep !== 4);
+    }
+
+    function submitGuideForm() {
       toggleGuideModal(false);
+
+      const customP = document.getElementById('g-custom-product').value.trim();
+      const p = customP || guideCategory || 'best recommended product';
+
+      const customB = document.getElementById('g-custom-budget').value.trim();
+      const b = customB ? parseInt(customB, 10) : (guideBudget || 2500);
+
+      const customSpecs = document.getElementById('g-custom-specs').value.trim();
+      const customStore = document.getElementById('g-custom-store').value.trim();
+
+      let q = `${p} under ₹${b}`;
+      if (customSpecs) q += ` with ${customSpecs}`;
+      if (customStore) q += ` from ${customStore}`;
+
       setQuery(q);
     }
 
@@ -486,7 +635,7 @@
         const val = parseInt(fullNum[0].replace(/,/g, ''), 10);
         if (val >= 50) return val;
       }
-      return 1500;
+      return 2500;
     }
 
     function getMission(query) {
@@ -505,7 +654,7 @@
           { attribute: 'flavor', label: 'Taste & Mixability', weight: 0.20 },
           { attribute: 'value', label: 'Cost Per Scoop', weight: 0.15 }
         ];
-      } else if (q.includes('underwear') || q.includes('undrwear') || q.includes('boxer') || q.includes('trunk') || q.includes('brief') || q.includes('innerwear')) {
+      } else if (q.includes('underwear') || q.includes('undrwear') || q.includes('trunk') || q.includes('boxer') || q.includes('innerwear')) {
         category = 'underwear';
         priorities = [
           { attribute: 'fabric', label: 'Cotton Softness & Breathability', weight: 0.35 },
@@ -619,26 +768,38 @@
         items = [
           { title: "MuscleBlaze Biozyme Performance Whey (1kg, Chocolate)", brand: "MuscleBlaze", price: Math.min(b, 1349), rating: 4.6, reviews: 14200 },
           { title: "Optimum Nutrition (ON) Gold Standard 100% Whey Protein (1kg)", brand: "Optimum Nutrition", price: Math.min(Math.round(b * 1.05), 1899), rating: 4.7, reviews: 22000 },
-          { title: "As-It-Is Nutrition Whey Protein Concentrate 80% Unflavoured (1kg)", brand: "AS-IT-IS", price: Math.min(Math.round(b * 0.85), 1199), rating: 4.4, reviews: 9800 }
+          { title: "As-It-Is Nutrition Whey Protein Concentrate 80% Unflavoured (1kg)", brand: "AS-IT-IS", price: Math.min(Math.round(b * 0.85), 1199), rating: 4.4, reviews: 9800 },
+          { title: "MuscleBlaze Raw Whey Protein 80% Unflavoured (1kg)", brand: "MuscleBlaze", price: Math.min(Math.round(b * 0.80), 1099), rating: 4.3, reviews: 7200 },
+          { title: "Dymatize ISO100 Hydrolyzed Whey Isolate Fudge Brownie", brand: "Dymatize", price: Math.min(Math.round(b * 1.3), 2499), rating: 4.7, reviews: 5400 },
+          { title: "Big Muscles Real Isolate 90 Whey Protein (1kg)", brand: "Big Muscles", price: Math.min(Math.round(b * 0.95), 1549), rating: 4.4, reviews: 3100 }
         ];
       } else if (text.includes('underwear') || text.includes('undrwear') || text.includes('trunk') || text.includes('boxer') || text.includes('innerwear')) {
         items = [
           { title: "Jockey Men 100% Super Combed Cotton Trunk (Pack of 2)", brand: "Jockey", price: Math.min(b, 449), rating: 4.6, reviews: 18500 },
           { title: "Van Heusen Ultra Soft MicroModal Anti-Chafing Boxer Briefs", brand: "Van Heusen", price: Math.min(Math.round(b * 0.95), 499), rating: 4.5, reviews: 7600 },
-          { title: "Calvin Klein Modern Cotton Stretch Trunk", brand: "Calvin Klein", price: Math.min(Math.round(b * 1.1), 799), rating: 4.7, reviews: 5400 }
+          { title: "Calvin Klein Modern Cotton Stretch Trunk", brand: "Calvin Klein", price: Math.min(Math.round(b * 1.1), 799), rating: 4.7, reviews: 5400 },
+          { title: "Jockey Men Cotton Elastane Trunk with No Roll Waistband", brand: "Jockey", price: Math.min(Math.round(b * 0.85), 399), rating: 4.5, reviews: 11200 },
+          { title: "Dollar Bigboss Premium Cotton Trunk Multi-Color (Pack of 5)", brand: "Dollar", price: Math.min(Math.round(b * 0.7), 349), rating: 4.2, reviews: 8900 },
+          { title: "Tommy Hilfiger Comfort Waistband Cotton Boxer Brief", brand: "Tommy Hilfiger", price: Math.min(Math.round(b * 1.2), 899), rating: 4.6, reviews: 3200 }
         ];
       } else if (text.includes('watch') || text.includes('titan') || text.includes('casio')) {
         items = [
           { title: "Titan Neo Splash Analog Black Dial Men Watch", brand: "Titan", price: Math.min(b, 3995), rating: 4.5, reviews: 3850 },
           { title: "Casio Vintage Digital Gunmetal Stainless Steel Watch (A168WGG)", brand: "Casio", price: Math.min(Math.round(b * 0.9), 3495), rating: 4.7, reviews: 9400 },
-          { title: "Titan Workwear Chronograph Silver Dial Men Watch", brand: "Titan", price: Math.min(Math.round(b * 1.05), 4495), rating: 4.6, reviews: 2100 }
+          { title: "Titan Workwear Chronograph Silver Dial Men Watch", brand: "Titan", price: Math.min(Math.round(b * 1.05), 4495), rating: 4.6, reviews: 2100 },
+          { title: "Fastrack Reflex Analog Black Dial Men's Watch", brand: "Fastrack", price: Math.min(Math.round(b * 0.75), 2995), rating: 4.3, reviews: 5600 },
+          { title: "Casio G-Shock Classic Digital Sports Watch", brand: "Casio", price: Math.min(Math.round(b * 0.85), 3295), rating: 4.6, reviews: 7800 },
+          { title: "Titan Regalia Bold Analog Blue Dial Men Watch", brand: "Titan", price: Math.min(Math.round(b * 1.15), 5495), rating: 4.7, reviews: 1450 }
         ];
       } else {
         const cap = mission.searchTerm.charAt(0).toUpperCase() + mission.searchTerm.slice(1);
         items = [
-          { title: `${cap} (Top Rated • 100% Quality Edition)`, brand: "Top Brand", price: Math.max(150, Math.round(b * 0.88)), rating: 4.5, reviews: 2450 },
-          { title: `${cap} (Premium Pro Series)`, brand: "Premium Series", price: Math.max(150, Math.round(b * 0.95)), rating: 4.6, reviews: 1890 },
-          { title: `${cap} (Value Plus Edition)`, brand: "Value Series", price: Math.max(180, Math.round(b * 1.08)), rating: 4.3, reviews: 1540 }
+          { title: `${cap} (Top Rated • Best Seller Edition)`, brand: "Top Brand", price: Math.max(150, Math.round(b * 0.88)), rating: 4.5, reviews: 2450 },
+          { title: `${cap} (Premium Pro Series • High Quality)`, brand: "Premium Series", price: Math.max(150, Math.round(b * 0.95)), rating: 4.6, reviews: 1890 },
+          { title: `${cap} (Value Pack Plus Edition)`, brand: "Value Series", price: Math.max(180, Math.round(b * 1.05)), rating: 4.3, reviews: 1540 },
+          { title: `${cap} (Budget Essential • Most Popular)`, brand: "Essentials", price: Math.max(150, Math.round(b * 0.78)), rating: 4.2, reviews: 3200 },
+          { title: `${cap} (Standard Edition • Trusted Choice)`, brand: "Standard Co", price: Math.max(180, Math.round(b * 1.12)), rating: 4.4, reviews: 980 },
+          { title: `${cap} (Flagship Series • Max Performance)`, brand: "Flagship Brand", price: Math.max(200, Math.round(b * 1.22)), rating: 4.7, reviews: 670 }
         ];
       }
 
@@ -674,7 +835,7 @@
             historyPoints: [{ date: "15 Jul", price: highest }, { date: "28 Jul", price: Math.round(highest * 0.96) }, { date: "06 Aug", price: Math.round(price * 1.05) }, { date: "14 Aug", price: Math.round(price * 1.02) }, { date: "Today", price: price }]
           },
           verdict: price > b ? "WAIT FOR SALE" : "BUY NOW", verdictType: price > b ? "wait" : "buy",
-          verdictReason: price > b ? `Exceeds budget cap by ${formatPrice(price - b)}. Wait for next sale discount.` : `Current price of ${formatPrice(price)} is within budget and near historical low.`,
+          verdictReason: price > b ? `Exceeds budget cap by ${formatPrice(price - b)}. Wait for sale discount.` : `Current price of ${formatPrice(price)} is within budget and near historical low.`,
           tradeOff: price > b ? `Price exceeds budget by ${formatPrice(price - b)}` : "Fast-selling item; limited stock on lowest store.",
           attributes: {}
         };
@@ -696,7 +857,6 @@
       currentMission = getMission(q);
       document.getElementById('mission-category').textContent = currentMission.searchTerm;
       document.getElementById('mission-budget').textContent = `${formatPrice(currentMission.budget_max)} ✓`;
-      document.getElementById('results-title').textContent = `Ranked Candidates for "${currentMission.searchTerm}"`;
 
       let products = null;
       let isLive = false;
@@ -711,11 +871,11 @@
           const res = await fetch('https://google.serper.dev/shopping', {
             method: 'POST',
             headers: { 'X-API-KEY': serperKey, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ q: searchQuery, gl: 'in', hl: 'en', num: 12 })
+            body: JSON.stringify({ q: searchQuery, gl: 'in', hl: 'en', num: 20 })
           });
           const data = await res.json();
           if (data.shopping && data.shopping.length > 0) {
-            products = data.shopping.slice(0, 3).map((item, idx) => {
+            products = data.shopping.slice(0, 10).map((item, idx) => {
               const numPrice = parseInt((item.price || '0').replace(/[^\d]/g, ''), 10) || currentMission.budget_max;
               const lowest = Math.round(numPrice * 0.94);
               const highest = Math.round(numPrice * 1.18);
@@ -769,6 +929,7 @@
 
       currentProducts = products;
       const ranked = scoreProducts(currentProducts, currentMission);
+      document.getElementById('results-title').textContent = `${ranked.length} Results for "${currentMission.searchTerm}"`;
 
       renderSliders();
       renderProducts(ranked, isLive);
@@ -820,7 +981,7 @@
       }
 
       const container = document.getElementById('product-cards');
-      container.innerHTML = ranked.slice(0, 3).map((p, idx) => {
+      container.innerHTML = ranked.map((p, idx) => {
         const isWinner = idx === 0;
         const discount = p.mrp > p.price ? Math.round(((p.mrp - p.price) / p.mrp) * 100) : 0;
         const bestStore = p.stores?.[0] || { name: 'Amazon India', price: p.price, link: `https://www.amazon.in/s?k=${encodeURIComponent(p.title)}` };
