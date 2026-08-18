@@ -44,8 +44,6 @@ export function extractBudgetNumber(query, fallbackDefault = 50000) {
 
 /**
  * Clean and extract the actual core product search keywords from user prompt
- * e.g., "i need titan watches under 4500" -> "titan watches"
- * e.g., "looking for wireless noise cancelling headphones under 10k" -> "wireless noise cancelling headphones"
  */
 export function extractSearchTerm(query) {
   let cleaned = query
@@ -60,13 +58,11 @@ export function extractSearchTerm(query) {
 
 /**
  * Deterministic Universal Fallback Mission Extractor
- * Dynamically builds appropriate criteria for ANY product query without hardcoding
  */
 function getFallbackMission(query) {
   const q = query.toLowerCase();
   const searchTerm = extractSearchTerm(query) || query;
 
-  // Detect broad category or use the extracted search term directly
   let category = 'product';
   let priorities = [];
   let defaultBudget = 5000;
@@ -89,7 +85,7 @@ function getFallbackMission(query) {
       { attribute: 'grip', label: 'Grip & Traction', weight: 0.20, importance: 'MEDIUM' },
       { attribute: 'breathability', label: 'Breathability', weight: 0.20, importance: 'MEDIUM' }
     ];
-  } else if (q.includes('shirt') || q.includes('tshirt') || q.includes('t-shirt') || q.includes('pant') || q.includes('trouser') || q.includes('cloth') || q.includes('dress') || q.includes('jeans') || q.includes('hoodie')) {
+  } else if (q.includes('shirt') || q.includes('tshirt') || q.includes('underwear') || q.includes('trunk') || q.includes('cloth')) {
     category = 'clothing';
     defaultBudget = 1500;
     priorities = [
@@ -116,17 +112,16 @@ function getFallbackMission(query) {
       { attribute: 'performance', label: 'Speed & Multitasking', weight: 0.20, importance: 'HIGH' },
       { attribute: 'display', label: 'Display & Refresh Rate', weight: 0.15, importance: 'MEDIUM' }
     ];
-  } else if (q.includes('headphone') || q.includes('earphone') || q.includes('audio') || q.includes('earbuds') || q.includes('tws')) {
-    category = 'headphones';
-    defaultBudget = 8000;
+  } else if (q.includes('protein') || q.includes('protin') || q.includes('whey') || q.includes('creatine')) {
+    category = 'protein';
+    defaultBudget = 2500;
     priorities = [
-      { attribute: 'anc', label: 'Active Noise Cancelling', weight: 0.35, importance: 'HIGH' },
-      { attribute: 'sound', label: 'Sound Quality & Bass', weight: 0.30, importance: 'HIGH' },
-      { attribute: 'battery', label: 'Battery Playback', weight: 0.20, importance: 'MEDIUM' },
-      { attribute: 'comfort', label: 'Fit & Comfort', weight: 0.15, importance: 'MEDIUM' }
+      { attribute: 'protein_content', label: 'Protein Purity & Labdoor Test', weight: 0.35, importance: 'HIGH' },
+      { attribute: 'digestibility', label: 'Digestibility & Enzymes', weight: 0.30, importance: 'HIGH' },
+      { attribute: 'flavor', label: 'Taste & Mixability', weight: 0.20, importance: 'MEDIUM' },
+      { attribute: 'value', label: 'Cost Per Scoop', weight: 0.15, importance: 'MEDIUM' }
     ];
   } else {
-    // Universal Generic Category
     category = searchTerm;
     defaultBudget = 5000;
     priorities = [
@@ -145,12 +140,12 @@ function getFallbackMission(query) {
     category,
     budget_max,
     priorities,
-    summary: `Decision model for ${searchTerm} with strict budget cap of ₹${budget_max.toLocaleString('en-IN')}`
+    summary: `Decision model for ${searchTerm} with budget cap of ₹${budget_max.toLocaleString('en-IN')}`
   };
 }
 
 /**
- * GEMINI CALL #1: Structured Intent Extraction (Universal for ANY Product)
+ * GEMINI CALL #1: Structured Intent Extraction (with 3-second timeout)
  */
 export async function extractShoppingMission(userQuery) {
   if (!userQuery || !userQuery.trim()) {
@@ -158,7 +153,6 @@ export async function extractShoppingMission(userQuery) {
   }
 
   const activeKey = getGeminiApiKey();
-
   if (!activeKey) {
     return getFallbackMission(userQuery);
   }
@@ -172,30 +166,31 @@ export async function extractShoppingMission(userQuery) {
         temperature: 0.1,
       },
       systemInstruction: `You are the Intent Extraction Engine for DECIDE.
-Analyze the user's natural language shopping need for ANY product category (electronics, watches, footwear, fashion, home, appliances, fitness, etc.) and output ONLY a valid JSON object matching this schema:
-
+Analyze the user's shopping query for ANY product and return JSON:
 {
-  "searchTerm": string (CRITICAL: The clean product keyword query for Google Shopping search, e.g. "Titan watches", "running shoes", "wireless mouse", "mechanical keyboard"),
-  "category": string (Concise category name, e.g. "watch", "shoes", "laptop", "phone", "headphones", "clothing", "smartwatch", "fragrance"),
-  "brand": string (Optional detected brand, e.g. "Titan", "Casio", "Apple", "Nike"),
-  "budget_max": number (CRITICAL: Exact integer in INR. e.g. "under 4500" -> 4500, "under 1000" -> 1000, "50000" -> 50000, "70k" -> 70000. Do NOT add extra zeros),
+  "searchTerm": string,
+  "category": string,
+  "budget_max": number,
   "priorities": [
-    {
-      "attribute": string (e.g. "build_quality", "battery", "performance", "comfort", "durability", "design", "camera"),
-      "label": "Human Readable Label (e.g. Build & Dial Quality, Battery Life, etc.)",
-      "weight": number (between 0.10 and 0.40, all weights MUST sum to exactly 1.0),
-      "importance": "HIGH" | "MEDIUM" | "LOW"
-    }
+    { "attribute": string, "label": string, "weight": number, "importance": "HIGH" | "MEDIUM" | "LOW" }
   ],
-  "summary": "Concise 1-line statement of user's core shopping need and budget"
+  "summary": string
 }`
     });
 
-    const result = await model.generateContent(userQuery);
+    // Race Gemini with a 3-second timeout so the UI NEVER hangs
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Gemini timeout")), 3000)
+    );
+
+    const result = await Promise.race([
+      model.generateContent(userQuery),
+      timeoutPromise
+    ]);
+
     const text = result.response.text();
     const parsed = JSON.parse(text);
 
-    // Sanitize budget with regex to ensure no hallucination
     const sanitizedBudget = extractBudgetNumber(userQuery, parsed.budget_max || 5000);
     parsed.budget_max = sanitizedBudget;
 
