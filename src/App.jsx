@@ -145,7 +145,11 @@ export default function App() {
       const ranked = scoreAndRankProducts(products, extractedMission);
       setRankedProducts(ranked);
 
-      await saveMission(extractedMission);
+      try {
+        await saveMission(extractedMission);
+      } catch (mErr) {
+        console.warn("Save mission error:", mErr);
+      }
     } catch (error) {
       console.error("Pipeline error:", error);
     } finally {

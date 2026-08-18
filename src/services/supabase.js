@@ -208,7 +208,7 @@ export async function getProductsByCategory(category = 'product', mission = null
  */
 export async function saveMission(mission) {
   const newMission = {
-    id: crypto.randomUUID ? crypto.randomUUID() : `m_${Date.now()}`,
+    id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `m_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     query: mission.query,
     category: mission.category,
     budget_max: mission.budget_max,
@@ -239,7 +239,7 @@ export async function saveMission(mission) {
  */
 export async function saveDecision(decision) {
   const newDecision = {
-    id: crypto.randomUUID ? crypto.randomUUID() : `d_${Date.now()}`,
+    id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `d_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     mission_id: decision.mission_id,
     product_id: decision.product_id,
     product_title: decision.product_title,
